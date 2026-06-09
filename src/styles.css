@@ -1,0 +1,386 @@
+:root {
+  color: #1f2f2a;
+  background: #f4f7f5;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+.startup-error {
+  width: min(100% - 32px, 760px);
+  margin: 32px auto;
+  padding: 24px;
+  border: 1px solid #e3b7ad;
+  border-radius: 8px;
+  background: #fff8f6;
+  color: #5c1f18;
+}
+
+.startup-error pre {
+  overflow: auto;
+  margin: 16px 0 0;
+  padding: 14px;
+  border-radius: 8px;
+  background: #2b1714;
+  color: #fff7f5;
+  white-space: pre-wrap;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.page-shell {
+  display: grid;
+  min-height: 100vh;
+  padding: 28px 16px;
+  place-items: center;
+}
+
+.form-panel {
+  width: min(100%, 960px);
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid #dfe7e2;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(35, 49, 43, 0.1);
+}
+
+.form-heading {
+  padding: 34px clamp(22px, 5vw, 56px) 26px;
+  background: linear-gradient(135deg, #24473f, #3d6b5e);
+  color: #ffffff;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  max-width: 760px;
+  margin-bottom: 12px;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.05;
+}
+
+h2,
+legend {
+  color: #1f2f2a;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  font-weight: 850;
+  line-height: 1.18;
+}
+
+.form-heading p {
+  max-width: 700px;
+  margin-bottom: 0;
+  color: #edf6f2;
+}
+
+form {
+  padding: clamp(22px, 5vw, 56px);
+}
+
+.progress-area {
+  margin-bottom: 28px;
+}
+
+.progress-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+  color: #52645d;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.progress-meta strong {
+  color: #24473f;
+}
+
+.progress-track {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e7eee9;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: #2f8065;
+  transition: width 0.25s ease;
+}
+
+.step-card {
+  min-height: 410px;
+  padding: clamp(20px, 4vw, 34px);
+  border: 1px solid #dfe7e2;
+  border-radius: 8px;
+  background: #fbfdfc;
+}
+
+.step-kicker {
+  margin-bottom: 8px;
+  color: #2f8065;
+  font-size: 0.82rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.fields-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  color: #31433b;
+  font-weight: 750;
+}
+
+.field span,
+legend {
+  overflow-wrap: anywhere;
+}
+
+input,
+textarea {
+  width: 100%;
+  border: 1px solid #cfdcd5;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2f2a;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+input {
+  min-height: 48px;
+  padding: 11px 13px;
+}
+
+textarea {
+  min-height: 190px;
+  resize: vertical;
+  padding: 13px;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #2f8065;
+  box-shadow: 0 0 0 4px rgba(47, 128, 101, 0.15);
+}
+
+.question {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.hint,
+.validation-note {
+  margin: 10px 0 0;
+  color: #66756f;
+  font-size: 0.95rem;
+}
+
+.validation-note {
+  color: #a33b2f;
+  font-weight: 800;
+}
+
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  min-height: 58px;
+  padding: 15px;
+  border: 1px solid #d5e1db;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #263a32;
+  font-weight: 750;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.option:hover {
+  border-color: #9fb8ad;
+  box-shadow: 0 10px 24px rgba(35, 49, 43, 0.06);
+}
+
+.option input {
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  min-height: 18px;
+  margin-top: 2px;
+  accent-color: #2f8065;
+}
+
+.option:has(input:checked) {
+  border-color: #2f8065;
+  background: #eef8f3;
+  box-shadow: 0 0 0 3px rgba(47, 128, 101, 0.12);
+}
+
+.textarea-field {
+  gap: 16px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 22px;
+  border-top: 1px solid #e5ece8;
+}
+
+.navigation-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+button {
+  min-height: 46px;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.primary-button {
+  background: #24473f;
+  color: #ffffff;
+}
+
+.primary-button:hover:not(:disabled) {
+  background: #1d3a34;
+}
+
+.secondary-button {
+  background: #edf3ef;
+  color: #2a3b34;
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: #dfe9e4;
+}
+
+.submit-error,
+.submit-success {
+  margin: 16px 0 0;
+  font-weight: 800;
+}
+
+.submit-error {
+  color: #a33b2f;
+}
+
+.submit-success {
+  color: #277449;
+}
+
+.submission-preview {
+  margin: 0 clamp(22px, 5vw, 56px) clamp(22px, 5vw, 56px);
+  padding: 20px;
+  border: 1px solid #cbded2;
+  border-radius: 8px;
+  background: #eef8f3;
+}
+
+.submission-preview pre {
+  max-height: 360px;
+  overflow: auto;
+  margin: 14px 0 0;
+  padding: 16px;
+  border-radius: 8px;
+  background: #1f2d27;
+  color: #f8fbf8;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 760px) {
+  .page-shell {
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .form-panel {
+    min-height: 100vh;
+    border-width: 0;
+    border-radius: 0;
+  }
+
+  .fields-grid,
+  .option-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .step-card {
+    min-height: auto;
+  }
+
+  .actions,
+  .navigation-actions {
+    flex-direction: column-reverse;
+  }
+
+  button,
+  .navigation-actions {
+    width: 100%;
+  }
+}
