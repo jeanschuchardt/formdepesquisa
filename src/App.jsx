@@ -823,6 +823,31 @@ export default function App() {
     return <DirectSchedulingPage />;
   }
 
+  if (submittedData) {
+    return (
+      <main className="page-shell">
+        <section className="form-panel" aria-labelledby="submitted-title">
+          <div className="form-heading">
+            <div>
+              <p className="eyebrow">Formulario enviado</p>
+              <h1 id="submitted-title">Recebemos suas respostas</h1>
+              <p>
+                Agora escolha um horario para sua conversa. O convite sera enviado para o e-mail
+                informado no formulario.
+              </p>
+            </div>
+            <div className="heading-pill" aria-label="Proximo passo">
+              <strong>2</strong>
+              <span>agendar</span>
+            </div>
+          </div>
+
+          <SchedulingPanel submittedData={submittedData} />
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="page-shell">
       <section className="form-panel" aria-labelledby="form-title">
@@ -869,7 +894,7 @@ export default function App() {
                   type="submit"
                   disabled={submitStatus === 'submitting'}
                 >
-                  {submitStatus === 'submitting' ? 'Enviando...' : 'Enviar formulario'}
+                  {submitStatus === 'submitting' ? 'Enviando...' : 'Agendar horario'}
                 </button>
               ) : (
                 <button className="primary-button" type="button" onClick={handleNext}>
@@ -881,13 +906,9 @@ export default function App() {
 
           {submitError ? <p className="submit-error">Erro ao salvar: {submitError}</p> : null}
           {submitStatus === 'success' ? (
-            <p className="submit-success">Formulario salvo no Supabase com sucesso.</p>
+            <p className="submit-success">Formulario enviado.</p>
           ) : null}
         </form>
-
-        {submittedData ? (
-          <SchedulingPanel submittedData={submittedData} />
-        ) : null}
       </section>
     </main>
   );
