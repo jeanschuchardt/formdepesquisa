@@ -387,6 +387,12 @@ Observacao de RLS:
 - Nao ha policy de leitura anonima para `dynamic_form_submissions`.
 - Por isso, o frontend deve fazer `insert` sem retornar a linha inserida.
 
+Guia de operacao manual:
+
+```text
+docs/formularios-dinamicos.md
+```
+
 ### Tipos de atendimento
 
 Foco: permitir links diferentes com duracoes e configuracoes diferentes.
