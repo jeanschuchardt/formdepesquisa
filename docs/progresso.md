@@ -12,15 +12,12 @@
 - APIs serverless criadas em `api/` para consultar disponibilidade e criar eventos no Google Calendar.
 - Vite configurado para executar as rotas `/api/availability` e `/api/book` tambem em desenvolvimento local.
 - Arquivo `.env.local` criado com placeholders locais. Ele esta ignorado pelo Git.
+- Commit `14a9d95` criado com a feature basica de agendamento.
+- Tag `v1-agendamento-feature-basica` criada e enviada para o remoto.
 
-## Alteracoes locais ainda nao commitadas
+## Alteracoes locais ainda nao commitadas atuais
 
-- `.env.example`
-- `README.md`
-- `src/App.jsx`
-- `src/styles.css`
-- `api/`
-- `docs/`
+- `.gitignore`: adicionado para ignorar `print/` e `docs/.obsidian/`.
 
 ## Agendamento
 
@@ -54,11 +51,12 @@ Variaveis necessarias no ambiente:
 - Chamada FreeBusy do Google Calendar validada com sucesso.
 - `/api/availability` validado localmente via Vite, retornando JSON.
 - Build validado apos refinamento da UI de agendamento.
+- Fluxo de agendamento direto testado localmente e aprovado em uso inicial.
+- Branch `main` e tag `v1-agendamento-feature-basica` enviadas para o GitHub.
 
 ## Pendencias
 
 - Completar credenciais reais do Supabase no `.env.local`.
-- Atualizar `README.md` e `.env.example` para remover a referencia antiga a `VITE_SCHEDULING_URL`.
 - Documentar como gerar o `GOOGLE_REFRESH_TOKEN`.
 - Testar o fluxo real:
   - envio do formulario;
@@ -68,12 +66,32 @@ Variaveis necessarias no ambiente:
   - recebimento do convite por e-mail.
 - Testar a pagina direta `/agendamento`.
 - Confirmar ambiente de deploy, provavelmente Vercel por causa da estrutura `api/`.
-- Fazer commit quando o fluxo estiver validado.
+- Fazer deploy na Vercel.
+- Validar a versao em producao.
+
+## Evolucao discutida
+
+O produto comecou como um formulario de acolhimento com agendamento, mas a direcao desejada e
+evoluir para uma plataforma de workflows para terapeutas.
+
+Decisoes e hipoteses atuais:
+
+- O primeiro uso real sera para um terapeuta especifico, nao para multiusuario imediato.
+- A arquitetura deve evitar travar a evolucao para SaaS multiusuario.
+- Por enquanto, a configuracao pode ser feita manualmente pelo operador no banco ou ambiente.
+- No futuro, o terapeuta deve ter independencia para configurar disponibilidade, tipos de
+  atendimento e links.
+- O preenchimento do formulario deve acontecer antes da escolha de horario no fluxo inicial.
+- Links diferentes podem ter formularios diferentes ou workflows diferentes no futuro.
+- A ideia de modulos plugaveis faz sentido: formulario, agendamento, pagamento, pagina e acoes.
+- Pagamento deve ser considerado futuramente para alguns tipos de atendimento.
+- O diferencial do produto tende a ser a composicao de jornadas/workflows, nao apenas agenda.
 
 ## Proximos passos sugeridos
 
-1. Completar as credenciais no `.env.local`.
-2. Corrigir documentacao publica do projeto.
-3. Rodar o app localmente e testar o fluxo completo.
-4. Ajustar problemas encontrados no teste.
-5. Commitar a versao validada.
+1. Commitar a alteracao do `.gitignore`.
+2. Completar as credenciais reais do Supabase no `.env.local`.
+3. Fazer deploy da versao atual na Vercel.
+4. Testar o fluxo completo em producao.
+5. Separar o codigo em modulos de formulario e agendamento.
+6. Mover configuracoes de agenda para dados persistidos, com foco inicial em um terapeuta.
