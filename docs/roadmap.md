@@ -29,6 +29,8 @@ em producao, mas com modelagem que possa evoluir para multiusuario.
 
 Objetivo: colocar a versao atual no ar para testar com um terapeuta real.
 
+Status: concluido em `v1-agendamento-producao`.
+
 Escopo:
 
 - Commitar `.gitignore` com `print/` e `docs/.obsidian/` ignorados.
@@ -48,6 +50,8 @@ Resultado esperado:
 
 Objetivo: deixar a experiencia publica mais clara e confiavel.
 
+Status: proximo ciclo recomendado.
+
 Escopo:
 
 - Refinar responsividade do calendario e dos horarios.
@@ -61,6 +65,14 @@ Escopo:
 Resultado esperado:
 
 - O usuario final entende o fluxo sem orientacao externa.
+
+Primeiro recorte sugerido:
+
+- Confirmacao final com data, horario e e-mail.
+- Botao para agendar outro horario.
+- Mensagens melhores para estados vazios e erros.
+- Validacao simples de e-mail.
+- Limite de datas futuras usando `GOOGLE_DAYS_AHEAD`.
 
 ## Ciclo 3: Modularizacao tecnica
 
@@ -246,3 +258,311 @@ Resultado esperado:
 - Quais perguntas do formulario sao obrigatorias para o terapeuta piloto?
 - Pagamento deve entrar antes ou depois da area admin?
 - O produto sera vendido como agenda terapeutica ou como construtor de jornadas para terapeutas?
+
+## Ramos possiveis de evolucao
+
+Depois da validacao de `v1-agendamento-producao`, existem varios ramos de melhoria. Eles nao devem
+ser feitos todos ao mesmo tempo; cada ramo atende um objetivo diferente.
+
+### UX publica
+
+Foco: melhorar a experiencia da pessoa que preenche o formulario e agenda.
+
+Possibilidades:
+
+- Confirmacao final com data, horario e e-mail.
+- Botao para agendar outro horario.
+- Mensagens melhores de erro.
+- Calendario mostrando dias disponiveis com mais clareza.
+- Bloqueio de finais de semana, se fizer sentido.
+- Limite de datas futuras.
+- Melhorias mobile.
+- Pagina de obrigado personalizada.
+
+Recomendacao: fazer agora, em recortes pequenos.
+
+### Formularios dinamicos
+
+Foco: sair de um formulario fixo no codigo e permitir selecionar perguntas.
+
+Primeira versao pode ser configurada manualmente no banco, sem tela admin.
+
+Decisao aprovada:
+
+- As perguntas devem ser montadas a partir de dados do banco.
+- Nao sera criada uma pagina para editar perguntas neste momento.
+- A configuracao inicial sera manual, diretamente no Supabase.
+- Isso e importante porque ainda nao sabemos quais perguntas sao as certas.
+- O objetivo e permitir iteracao rapida sem criar uma area administrativa prematura.
+
+Modelo recomendado para comecar:
+
+```text
+forms
+form_questions
+form_submissions.answers jsonb
+```
+
+Modelo inicial proposto:
+
+```text
+forms
+- id
+- slug
+- title
+- description
+- is_active
+- created_at
+- updated_at
+
+form_questions
+- id
+- form_id
+- key
+- label
+- description
+- type
+- required
+- options jsonb
+- position
+- is_active
+- created_at
+- updated_at
+
+form_submissions
+- id
+- form_id
+- respondent_name
+- respondent_email
+- respondent_phone
+- answers jsonb
+- created_at
+```
+
+Tipos de campo iniciais:
+
+```text
+short_text
+long_text
+email
+phone
+single_choice
+multi_choice
+yes_no
+```
+
+Possibilidades:
+
+- Ativar ou desativar perguntas pelo banco.
+- Reordenar perguntas.
+- Ter formularios diferentes por tipo de atendimento.
+- Salvar respostas em JSONB.
+- Futuramente criar regras condicionais.
+- Futuramente normalizar respostas para relatorios avancados.
+
+Recomendacao: fazer depois da modularizacao inicial.
+
+Plano incremental:
+
+1. Criar novas tabelas no Supabase.
+2. Inserir a configuracao equivalente ao formulario atual.
+3. Alterar o frontend para buscar `forms` e `form_questions`.
+4. Renderizar perguntas ativas ordenadas por `position`.
+5. Salvar respostas em `form_submissions.answers` usando `question.key`.
+6. Manter nome, e-mail e telefone tambem em colunas proprias para busca facil.
+7. Depois decidir se dados antigos serao migrados ou mantidos na tabela atual.
+
+### Tipos de atendimento
+
+Foco: permitir links diferentes com duracoes e configuracoes diferentes.
+
+Exemplos:
+
+```text
+/agendar/sessao-gratuita
+/agendar/atendimento-30min
+/agendar/atendimento-3h
+```
+
+Cada tipo pode ter:
+
+- titulo;
+- descricao;
+- duracao;
+- formulario associado;
+- slug;
+- status ativo/inativo;
+- buffer futuro.
+
+Recomendacao: fazer depois de modularizar e iniciar formularios dinamicos.
+
+### Disponibilidade configuravel
+
+Foco: tirar horarios fixos do `.env` e mover para regras configuraveis.
+
+Evolucao possivel:
+
+```text
+availability_rules
+- weekday
+- start_time
+- end_time
+- active
+```
+
+Depois:
+
+- bloqueios manuais;
+- feriados;
+- buffer global;
+- buffer por tipo de atendimento;
+- disponibilidade por tipo.
+
+Recomendacao: comecar simples, com regras semanais por terapeuta.
+
+### Modularizacao tecnica
+
+Foco: preparar o codigo para crescer sem concentrar tudo em `App.jsx`.
+
+Estrutura candidata:
+
+```text
+src/pages/
+src/modules/forms/
+src/modules/scheduling/
+src/modules/workflows/
+src/lib/
+```
+
+Recomendacao: fazer antes de formularios dinamicos e tipos de atendimento.
+
+### Workflows plugaveis
+
+Foco: montar sequencias diferentes de passos.
+
+Exemplos:
+
+```text
+form -> agendamento
+form -> pagamento -> agendamento
+agendamento -> form -> confirmacao
+landing -> form -> agendamento -> email
+```
+
+Entidades candidatas:
+
+```text
+workflows
+workflow_steps
+```
+
+Recomendacao: fazer depois de formularios dinamicos e tipos de atendimento.
+
+### Area admin do terapeuta
+
+Foco: dar independencia ao terapeuta sem o desenvolvedor editar banco.
+
+Primeiras telas possiveis:
+
+- login;
+- editar perfil;
+- ver e copiar links;
+- ver agendamentos;
+- ativar/desativar perguntas;
+- editar disponibilidade simples.
+
+Recomendacao: fazer depois de validar configuracao manual no banco.
+
+### Google OAuth por terapeuta
+
+Foco: cada terapeuta conectar sua propria conta Google.
+
+Fluxo futuro:
+
+- terapeuta loga;
+- clica em conectar Google;
+- autoriza a aplicacao;
+- app salva refresh token associado ao terapeuta;
+- app lista calendarios;
+- terapeuta escolhe agenda.
+
+Recomendacao: fazer depois de area admin basica.
+
+### Pagamentos
+
+Foco: cobrar por alguns tipos de atendimento.
+
+Caminhos possiveis:
+
+- link de pagamento manual;
+- Stripe, Mercado Pago ou outro provedor;
+- pagamento antes de confirmar evento;
+- reserva temporaria de horario.
+
+Recomendacao: fazer depois de tipos de atendimento.
+
+### SaaS e planos
+
+Foco: vender como assinatura.
+
+Possivel separacao:
+
+- Gratis: um link e agenda basica.
+- Basico: varios tipos de atendimento.
+- Premium: workflows customizados.
+- Pro: pagamentos, automacoes, equipe e relatorios.
+
+Recomendacao: deixar para depois da validacao com terapeutas reais.
+
+## Caminhos possiveis agora
+
+### Caminho A: produto primeiro
+
+Ordem:
+
+```text
+UX publica -> teste com terapeuta -> feedback -> ajustes
+```
+
+Bom para validar rapido.
+
+### Caminho B: arquitetura primeiro
+
+Ordem:
+
+```text
+modularizacao -> formularios dinamicos -> tipos de atendimento
+```
+
+Bom para preparar base solida.
+
+### Caminho C: configuracao primeiro
+
+Ordem:
+
+```text
+appointment_types -> availability_rules -> formularios dinamicos
+```
+
+Bom para criar variacoes de links e regras.
+
+## Recomendacao atual
+
+Seguir uma combinacao controlada:
+
+```text
+1. UX publica pequena
+2. Modularizacao
+3. Formularios dinamicos
+4. Tipos de atendimento
+5. Disponibilidade configuravel
+```
+
+Evitar por enquanto:
+
+```text
+area admin completa
+OAuth multi-terapeuta
+pagamentos integrados
+SaaS/planos
+```

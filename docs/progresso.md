@@ -78,12 +78,53 @@ Decisoes e hipoteses atuais:
 - A ideia de modulos plugaveis faz sentido: formulario, agendamento, pagamento, pagina e acoes.
 - Pagamento deve ser considerado futuramente para alguns tipos de atendimento.
 - O diferencial do produto tende a ser a composicao de jornadas/workflows, nao apenas agenda.
+- Formularios dinamicos foram aprovados como direcao: perguntas configuradas manualmente no banco,
+  sem tela admin inicialmente, e renderizadas dinamicamente no frontend.
 
 ## Proximos passos sugeridos
 
-1. Commitar a alteracao do `.gitignore`.
-2. Completar as credenciais reais do Supabase no `.env.local`.
-3. Fazer deploy da versao atual na Vercel.
-4. Testar o fluxo completo em producao.
-5. Separar o codigo em modulos de formulario e agendamento.
-6. Mover configuracoes de agenda para dados persistidos, com foco inicial em um terapeuta.
+1. Entrar no Ciclo 2A: ajustes finais de UX publica e confiabilidade.
+2. Melhorar a confirmacao final mostrando data, horario e e-mail usado.
+3. Adicionar opcao de agendar outro horario.
+4. Melhorar mensagens de erro e estados sem horarios.
+5. Aplicar limite de datas futuras usando `GOOGLE_DAYS_AHEAD`.
+6. Depois iniciar modularizacao tecnica de formulario, agendamento e paginas.
+7. Depois mover configuracoes de agenda para dados persistidos, com foco inicial em um terapeuta.
+
+## Marco atual
+
+`v1-agendamento-producao` esta concluida.
+
+O produto ja tem uma primeira versao funcional, publicada e validada:
+
+- formulario base funcionando;
+- persistencia no Supabase;
+- integracao com Google Calendar;
+- criacao de evento com Google Meet;
+- pagina direta `/agendamento`;
+- fluxo formulario -> agendamento;
+- deploy na Vercel;
+- validacao local e em producao;
+- documentacao base criada.
+
+## Proxima evolucao recomendada
+
+Entrar no Ciclo 2: UX publica e confiabilidade.
+
+Escopo sugerido para o Ciclo 2A:
+
+- Mostrar data e horario escolhidos na confirmacao final.
+- Mostrar e-mail usado no agendamento.
+- Adicionar botao para agendar outro horario.
+- Melhorar mensagem quando nao houver horarios disponiveis.
+- Melhorar mensagens de erro do Google Calendar.
+- Validar e-mail antes de tentar confirmar agendamento.
+- Limitar navegacao futura do calendario usando `GOOGLE_DAYS_AHEAD`.
+
+Depois do Ciclo 2A:
+
+1. Modularizar o codigo.
+2. Separar formulario, agendamento, paginas e utilitarios.
+3. Criar configuracao por terapeuta no banco.
+4. Criar tipos de atendimento e links diferentes.
+5. Evoluir para workflows configuraveis.
