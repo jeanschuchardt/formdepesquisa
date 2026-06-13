@@ -1,87 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { formTableName, isSupabaseConfigured, supabase } from './lib/supabase';
+import { isSupabaseConfigured, supabase } from './lib/supabase';
 
-const attentionAreas = [
-  'Relacionamento amoroso',
-  'Familia',
-  'Ansiedade e sobrecarga emocional',
-  'Autoestima',
-  'Trabalho e carreira',
-  'Espiritualidade e proposito',
-  'Tomada de decisao',
-  'Outro'
-];
-
-const durationOptions = [
-  'Menos de 3 meses',
-  'Entre 3 meses e 1 ano',
-  'Entre 1 e 3 anos',
-  'Mais de 3 anos'
-];
-
-const impactOptions = ['Pouco', 'Moderadamente', 'Muito', 'Extremamente'];
-
-const expectedOutcomes = [
-  'Clareza sobre minha situacao',
-  'Melhorar relacionamentos',
-  'Resolver conflitos familiares',
-  'Compreender padroes repetitivos',
-  'Tomar uma decisao importante',
-  'Desenvolver autoconhecimento',
-  'Encontrar mais equilibrio emocional'
-];
-
-const previousProcesses = [
-  'Nunca',
-  'Terapia',
-  'Constelacao Familiar',
-  'Coaching',
-  'Mentoria',
-  'Mais de uma das opcoes acima'
-];
-
-const investmentMomentOptions = [
-  'Estou pronto(a) para investir no meu desenvolvimento pessoal e emocional.',
-  'Gostaria de entender melhor antes de decidir.',
-  'Preciso avaliar o investimento financeiro.',
-  'Preciso conversar com minha familia/parceiro(a).',
-  'Busco apenas a sessao gratuita.'
-];
-
-const referralOptions = ['Instagram', 'Indicacao', 'WhatsApp', 'Cerimonia', 'Google', 'Outro'];
-
-const initialForm = {
-  fullName: '',
-  whatsapp: '',
-  email: '',
-  city: '',
-  state: '',
-  qualification: '',
-  attentionArea: '',
-  duration: '',
-  impact: '',
-  expectedOutcomes: [],
-  previousProcess: '',
-  investmentMoment: '',
-  onlineAvailability: '',
-  referralSource: '',
-  currentSituation: ''
-};
-
-const contactFields = ['fullName', 'whatsapp', 'email', 'city', 'state', 'qualification'];
-
-const steps = [
-  { id: 'contact', label: 'Contato', fields: contactFields },
-  { id: 'attentionArea', label: 'Pergunta 6', fields: ['attentionArea'] },
-  { id: 'duration', label: 'Pergunta 7', fields: ['duration'] },
-  { id: 'impact', label: 'Pergunta 8', fields: ['impact'] },
-  { id: 'expectedOutcomes', label: 'Pergunta 9', fields: ['expectedOutcomes'] },
-  { id: 'previousProcess', label: 'Pergunta 10', fields: ['previousProcess'] },
-  { id: 'investmentMoment', label: 'Pergunta 11', fields: ['investmentMoment'] },
-  { id: 'onlineAvailability', label: 'Pergunta 12', fields: ['onlineAvailability'] },
-  { id: 'referralSource', label: 'Pergunta 13', fields: ['referralSource'] },
-  { id: 'currentSituation', label: 'Pergunta 14', fields: ['currentSituation'] }
-];
+const FORM_SLUG = 'acolhimento-inicial';
+const DYNAMIC_SUBMISSIONS_TABLE = 'dynamic_form_submissions';
+const contactQuestionKeys = ['full_name', 'whatsapp', 'email', 'city', 'state', 'qualification'];
 
 function TextField({ id, label, type = 'text', value, onChange, required = true, placeholder }) {
   return (
@@ -151,6 +73,58 @@ function CheckboxGroup({ legend, options, values, onChange }) {
       </div>
     </fieldset>
   );
+}
+
+function getInitialAnswers(questions) {
+  return Object.fromEntries(
+    questions.map((question) => [question.key, question.type === 'multi_choice' ? [] : ''])
+  );
+}
+
+function buildFormSteps(questions) {
+  const contactQuestions = contactQuestionKeys
+    .map((key) => questions.find((question) => question.key === key))
+    .filter(Boolean);
+  const contactQuestionIds = new Set(contactQuestions.map((question) => question.id));
+  const questionSteps = questions
+    .filter((question) => !contactQuestionIds.has(question.id))
+    .map((question, index) => ({
+      id: question.key,
+      label: `Pergunta ${index + 1}`,
+      questions: [question]
+    }));
+
+  return [
+    ...(contactQuestions.length > 0
+      ? [{ id: 'contact', label: 'Contato', questions: contactQuestions }]
+      : []),
+    ...questionSteps
+  ];
+}
+
+function getPlaceholder(question) {
+  const placeholders = {
+    full_name: 'Seu nome completo',
+    whatsapp: '(00) 00000-0000',
+    email: 'voce@email.com',
+    state: 'UF ou estado',
+    qualification: 'Profissao, ocupacao ou formacao',
+    current_situation: 'Conte de forma breve o que esta acontecendo no momento.'
+  };
+
+  return placeholders[question.key];
+}
+
+function getInputType(question) {
+  if (question.type === 'email') {
+    return 'email';
+  }
+
+  if (question.type === 'phone') {
+    return 'tel';
+  }
+
+  return 'text';
 }
 
 function formatDateForInput(date) {
@@ -543,49 +517,103 @@ function DirectSchedulingPage() {
 
 export default function App() {
   const isDirectSchedulingPage = window.location.pathname === '/agendamento';
-  const [form, setForm] = useState(initialForm);
+  const [dynamicForm, setDynamicForm] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [answers, setAnswers] = useState({});
+  const [formLoadStatus, setFormLoadStatus] = useState('idle');
+  const [formLoadError, setFormLoadError] = useState('');
   const [submittedData, setSubmittedData] = useState(null);
   const [submitStatus, setSubmitStatus] = useState('idle');
   const [submitError, setSubmitError] = useState('');
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [validationMessage, setValidationMessage] = useState('');
 
+  const steps = useMemo(() => buildFormSteps(questions), [questions]);
   const currentStep = steps[currentStepIndex];
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === steps.length - 1;
   const progress = useMemo(
-    () => Math.round(((currentStepIndex + 1) / steps.length) * 100),
-    [currentStepIndex]
+    () => (steps.length > 0 ? Math.round(((currentStepIndex + 1) / steps.length) * 100) : 0),
+    [currentStepIndex, steps.length]
   );
 
+  useEffect(() => {
+    if (isDirectSchedulingPage) {
+      return;
+    }
+
+    async function loadDynamicForm() {
+      if (!isSupabaseConfigured) {
+        setFormLoadStatus('error');
+        setFormLoadError(
+          'Configure VITE_SUPABASE_URL e VITE_SUPABASE_PUBLISHABLE_KEY no arquivo .env.local.'
+        );
+        return;
+      }
+
+      setFormLoadStatus('loading');
+      setFormLoadError('');
+
+      const { data: formData, error: formError } = await supabase
+        .from('forms')
+        .select('id, slug, title, description')
+        .eq('slug', FORM_SLUG)
+        .single();
+
+      if (formError) {
+        setFormLoadStatus('error');
+        setFormLoadError(formError.message);
+        return;
+      }
+
+      const { data: questionData, error: questionError } = await supabase
+        .from('form_questions')
+        .select('id, key, label, description, type, required, options, position')
+        .eq('form_id', formData.id)
+        .order('position', { ascending: true });
+
+      if (questionError) {
+        setFormLoadStatus('error');
+        setFormLoadError(questionError.message);
+        return;
+      }
+
+      const activeQuestions = questionData || [];
+      setDynamicForm(formData);
+      setQuestions(activeQuestions);
+      setAnswers(getInitialAnswers(activeQuestions));
+      setCurrentStepIndex(0);
+      setFormLoadStatus('success');
+    }
+
+    loadDynamicForm();
+  }, [isDirectSchedulingPage]);
+
   function updateField(field, value) {
-    setForm((currentForm) => ({ ...currentForm, [field]: value }));
+    setAnswers((currentAnswers) => ({ ...currentAnswers, [field]: value }));
     setValidationMessage('');
     setSubmitError('');
   }
 
   function toSupabasePayload() {
+    const normalizedAnswers = Object.fromEntries(
+      Object.entries(answers).map(([key, value]) => [
+        key,
+        typeof value === 'string' ? value.trim() : value
+      ])
+    );
+
     return {
-      full_name: form.fullName.trim(),
-      whatsapp: form.whatsapp.trim(),
-      email: form.email.trim(),
-      city: form.city.trim(),
-      state: form.state.trim(),
-      qualification: form.qualification.trim(),
-      attention_area: form.attentionArea,
-      duration: form.duration,
-      impact: form.impact,
-      expected_outcomes: form.expectedOutcomes,
-      previous_process: form.previousProcess,
-      investment_moment: form.investmentMoment,
-      online_availability: form.onlineAvailability,
-      referral_source: form.referralSource,
-      current_situation: form.currentSituation.trim()
+      form_id: dynamicForm.id,
+      respondent_name: String(normalizedAnswers.full_name || ''),
+      respondent_email: String(normalizedAnswers.email || ''),
+      respondent_phone: String(normalizedAnswers.whatsapp || ''),
+      answers: normalizedAnswers
     };
   }
 
   function isFieldFilled(field) {
-    const value = form[field];
+    const value = answers[field];
 
     if (Array.isArray(value)) {
       return value.length > 0;
@@ -595,14 +623,16 @@ export default function App() {
   }
 
   function validateCurrentStep() {
-    const missingField = currentStep.fields.find((field) => !isFieldFilled(field));
+    const missingQuestion = currentStep.questions.find(
+      (question) => question.required && !isFieldFilled(question.key)
+    );
 
-    if (!missingField) {
+    if (!missingQuestion) {
       return true;
     }
 
-    if (currentStep.id === 'expectedOutcomes') {
-      setValidationMessage('Selecione pelo menos uma expectativa para continuar.');
+    if (missingQuestion.type === 'multi_choice') {
+      setValidationMessage('Selecione pelo menos uma opcao para continuar.');
       return false;
     }
 
@@ -643,7 +673,7 @@ export default function App() {
     setSubmitStatus('submitting');
 
     const payload = toSupabasePayload();
-    const { error } = await supabase.from(formTableName).insert(payload);
+    const { error } = await supabase.from(DYNAMIC_SUBMISSIONS_TABLE).insert(payload);
 
     if (error) {
       setSubmitStatus('error');
@@ -651,12 +681,16 @@ export default function App() {
       return;
     }
 
-    setSubmittedData(payload);
+    setSubmittedData({
+      full_name: payload.respondent_name,
+      email: payload.respondent_email,
+      whatsapp: payload.respondent_phone
+    });
     setSubmitStatus('success');
   }
 
   function handleReset() {
-    setForm(initialForm);
+    setAnswers(getInitialAnswers(questions));
     setSubmittedData(null);
     setSubmitStatus('idle');
     setSubmitError('');
@@ -664,159 +698,79 @@ export default function App() {
     setCurrentStepIndex(0);
   }
 
-  function renderStep() {
-    switch (currentStep.id) {
-      case 'contact':
-        return (
-          <section className="step-content" aria-labelledby="contact-title">
-            <p className="step-kicker">Dados de contato</p>
-            <h2 id="contact-title">Como podemos falar com voce?</h2>
-            <div className="fields-grid">
-              <TextField
-                id="fullName"
-                label="Nome completo"
-                value={form.fullName}
-                onChange={(value) => updateField('fullName', value)}
-                placeholder="Seu nome completo"
-              />
-              <TextField
-                id="whatsapp"
-                label="WhatsApp"
-                type="tel"
-                value={form.whatsapp}
-                onChange={(value) => updateField('whatsapp', value)}
-                placeholder="(00) 00000-0000"
-              />
-              <TextField
-                id="email"
-                label="E-mail"
-                type="email"
-                value={form.email}
-                onChange={(value) => updateField('email', value)}
-                placeholder="voce@email.com"
-              />
-              <TextField
-                id="city"
-                label="Cidade"
-                value={form.city}
-                onChange={(value) => updateField('city', value)}
-              />
-              <TextField
-                id="state"
-                label="Estado"
-                value={form.state}
-                onChange={(value) => updateField('state', value)}
-                placeholder="UF ou estado"
-              />
-              <TextField
-                id="qualification"
-                label="Qualificacao"
-                value={form.qualification}
-                onChange={(value) => updateField('qualification', value)}
-                placeholder="Profissao, ocupacao ou formacao"
-              />
-            </div>
-          </section>
-        );
-      case 'attentionArea':
-        return (
-          <RadioGroup
-            legend="6. Qual area da sua vida mais precisa de atencao neste momento?"
-            name="attentionArea"
-            options={attentionAreas}
-            value={form.attentionArea}
-            onChange={(value) => updateField('attentionArea', value)}
+  function renderQuestion(question) {
+    if (question.type === 'long_text') {
+      return (
+        <label className="field textarea-field" htmlFor={question.key} key={question.id}>
+          <span>{question.label}</span>
+          {question.description ? <p className="hint">{question.description}</p> : null}
+          <textarea
+            id={question.key}
+            value={answers[question.key] || ''}
+            onChange={(event) => updateField(question.key, event.target.value)}
+            required={question.required}
+            rows="7"
+            placeholder={getPlaceholder(question)}
           />
-        );
-      case 'duration':
-        return (
-          <RadioGroup
-            legend="7. Ha quanto tempo essa situacao esta presente?"
-            name="duration"
-            options={durationOptions}
-            value={form.duration}
-            onChange={(value) => updateField('duration', value)}
-          />
-        );
-      case 'impact':
-        return (
-          <RadioGroup
-            legend="8. Quanto essa situacao impacta sua vida atualmente?"
-            name="impact"
-            options={impactOptions}
-            value={form.impact}
-            onChange={(value) => updateField('impact', value)}
-          />
-        );
-      case 'expectedOutcomes':
-        return (
-          <CheckboxGroup
-            legend="9. O que voce espera obter com essa conversa?"
-            options={expectedOutcomes}
-            values={form.expectedOutcomes}
-            onChange={(value) => updateField('expectedOutcomes', value)}
-          />
-        );
-      case 'previousProcess':
-        return (
-          <RadioGroup
-            legend="10. Voce ja participou de algum processo terapeutico anteriormente?"
-            name="previousProcess"
-            options={previousProcesses}
-            value={form.previousProcess}
-            onChange={(value) => updateField('previousProcess', value)}
-          />
-        );
-      case 'investmentMoment':
-        return (
-          <RadioGroup
-            legend="11. Caso perceba que um acompanhamento pode ajuda-lo(a), qual opcao melhor representa seu momento atual?"
-            name="investmentMoment"
-            options={investmentMomentOptions}
-            value={form.investmentMoment}
-            onChange={(value) => updateField('investmentMoment', value)}
-          />
-        );
-      case 'onlineAvailability':
-        return (
-          <RadioGroup
-            legend="12. Voce possui disponibilidade para realizar sessoes online por video?"
-            name="onlineAvailability"
-            options={['Sim', 'Nao']}
-            value={form.onlineAvailability}
-            onChange={(value) => updateField('onlineAvailability', value)}
-          />
-        );
-      case 'referralSource':
-        return (
-          <RadioGroup
-            legend="13. Como conheceu meu trabalho?"
-            name="referralSource"
-            options={referralOptions}
-            value={form.referralSource}
-            onChange={(value) => updateField('referralSource', value)}
-          />
-        );
-      case 'currentSituation':
-        return (
-          <label className="field textarea-field" htmlFor="currentSituation">
-            <span>
-              14. Descreva brevemente o que voce esta vivendo hoje e por que esta sessao gratuita
-              seria importante para voce.
-            </span>
-            <textarea
-              id="currentSituation"
-              value={form.currentSituation}
-              onChange={(event) => updateField('currentSituation', event.target.value)}
-              required
-              rows="7"
-              placeholder="Conte de forma breve o que esta acontecendo no momento."
-            />
-          </label>
-        );
-      default:
-        return null;
+        </label>
+      );
     }
+
+    if (question.type === 'single_choice' || question.type === 'yes_no') {
+      return (
+        <RadioGroup
+          legend={question.label}
+          name={question.key}
+          options={question.options || []}
+          value={answers[question.key] || ''}
+          onChange={(value) => updateField(question.key, value)}
+          key={question.id}
+        />
+      );
+    }
+
+    if (question.type === 'multi_choice') {
+      return (
+        <CheckboxGroup
+          legend={question.label}
+          options={question.options || []}
+          values={answers[question.key] || []}
+          onChange={(value) => updateField(question.key, value)}
+          key={question.id}
+        />
+      );
+    }
+
+    return (
+      <TextField
+        id={question.key}
+        label={question.label}
+        type={getInputType(question)}
+        value={answers[question.key] || ''}
+        onChange={(value) => updateField(question.key, value)}
+        required={question.required}
+        placeholder={getPlaceholder(question)}
+        key={question.id}
+      />
+    );
+  }
+
+  function renderStep() {
+    if (!currentStep) {
+      return null;
+    }
+
+    if (currentStep.id === 'contact') {
+      return (
+        <section className="step-content" aria-labelledby="contact-title">
+          <p className="step-kicker">Dados de contato</p>
+          <h2 id="contact-title">Como podemos falar com voce?</h2>
+          <div className="fields-grid">{currentStep.questions.map(renderQuestion)}</div>
+        </section>
+      );
+    }
+
+    return currentStep.questions.map(renderQuestion);
   }
 
   if (isDirectSchedulingPage) {
@@ -848,22 +802,48 @@ export default function App() {
     );
   }
 
+  if (formLoadStatus === 'loading' || formLoadStatus === 'idle') {
+    return (
+      <main className="page-shell">
+        <section className="form-panel" aria-labelledby="form-loading-title">
+          <div className="form-heading">
+            <p className="eyebrow">Sessao gratuita</p>
+            <h1 id="form-loading-title">Carregando formulario</h1>
+            <p>Estamos preparando as perguntas para voce.</p>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (formLoadStatus === 'error') {
+    return (
+      <main className="page-shell">
+        <section className="startup-error" aria-labelledby="form-error-title">
+          <h1 id="form-error-title">Erro ao carregar o formulario</h1>
+          <p>Confira a configuracao do Supabase e tente novamente.</p>
+          <pre>{formLoadError}</pre>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="page-shell">
       <section className="form-panel" aria-labelledby="form-title">
         <div className="form-heading">
           <p className="eyebrow">Sessao gratuita</p>
-          <h1 id="form-title">Formulario de acolhimento</h1>
+          <h1 id="form-title">{dynamicForm?.title || 'Formulario de acolhimento'}</h1>
           <p>
-            Preencha os dados abaixo para que a conversa inicial seja conduzida com mais clareza e
-            cuidado.
+            {dynamicForm?.description ||
+              'Preencha os dados abaixo para que a conversa inicial seja conduzida com mais clareza e cuidado.'}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="progress-area" aria-label="Progresso do formulario">
             <div className="progress-meta">
-              <span>{currentStep.label}</span>
+              <span>{currentStep?.label || 'Formulario'}</span>
               <strong>{progress}%</strong>
             </div>
             <div className="progress-track">

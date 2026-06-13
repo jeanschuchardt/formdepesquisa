@@ -80,6 +80,10 @@ Decisoes e hipoteses atuais:
 - O diferencial do produto tende a ser a composicao de jornadas/workflows, nao apenas agenda.
 - Formularios dinamicos foram aprovados como direcao: perguntas configuradas manualmente no banco,
   sem tela admin inicialmente, e renderizadas dinamicamente no frontend.
+- Tabelas de formularios dinamicos foram criadas no Supabase.
+- Frontend foi adaptado para carregar `forms` e `form_questions` e salvar em
+  `dynamic_form_submissions`.
+- Fluxo com formulario dinamico validado localmente com salvamento bem-sucedido no Supabase.
 
 ## Proximos passos sugeridos
 

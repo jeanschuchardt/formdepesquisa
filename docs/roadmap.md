@@ -372,6 +372,21 @@ Plano incremental:
 6. Manter nome, e-mail e telefone tambem em colunas proprias para busca facil.
 7. Depois decidir se dados antigos serao migrados ou mantidos na tabela atual.
 
+Arquivo SQL inicial:
+
+```text
+supabase/dynamic_forms.sql
+```
+
+Esse SQL cria as tabelas `forms`, `form_questions` e `dynamic_form_submissions`, alem de inserir a
+configuracao equivalente ao formulario atual como `acolhimento-inicial`.
+
+Observacao de RLS:
+
+- A submissao dinamica permite `insert` anonimo.
+- Nao ha policy de leitura anonima para `dynamic_form_submissions`.
+- Por isso, o frontend deve fazer `insert` sem retornar a linha inserida.
+
 ### Tipos de atendimento
 
 Foco: permitir links diferentes com duracoes e configuracoes diferentes.
