@@ -52,19 +52,12 @@ Variaveis necessarias no ambiente:
 - `/api/availability` validado localmente via Vite, retornando JSON.
 - Build validado apos refinamento da UI de agendamento.
 - Fluxo de agendamento direto testado localmente e aprovado em uso inicial.
+- Fluxo completo local validado com sucesso: formulario, Supabase, proxima etapa e agendamento.
 - Branch `main` e tag `v1-agendamento-feature-basica` enviadas para o GitHub.
 
 ## Pendencias
 
 - Completar credenciais reais do Supabase no `.env.local`.
-- Documentar como gerar o `GOOGLE_REFRESH_TOKEN`.
-- Testar o fluxo real:
-  - envio do formulario;
-  - carregamento de horarios disponiveis;
-  - criacao do evento no Google Calendar;
-  - geracao do link do Google Meet;
-  - recebimento do convite por e-mail.
-- Testar a pagina direta `/agendamento`.
 - Confirmar ambiente de deploy, provavelmente Vercel por causa da estrutura `api/`.
 - Fazer deploy na Vercel.
 - Validar a versao em producao.
