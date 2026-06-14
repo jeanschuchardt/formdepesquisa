@@ -3,14 +3,14 @@
 ## Resumo executivo
 
 O projeto ja possui uma primeira versao em producao com formulario, agendamento e integracao com
-Google Calendar. A evolucao mais recente moveu o formulario para um modelo dinamico baseado em banco
-de dados, permitindo alterar perguntas manualmente no Supabase sem mudar o codigo.
+Google Calendar. A evolucao mais recente refinou a UX publica: formulario guiado, agendamento mais
+limpo, confirmacao em modal e tela final de sucesso com resumo do agendamento.
 
 ## Estado atual
 
 ```text
-Versao atual: v1-formularios-dinamicos
-Ambiente: producao validada anteriormente na Vercel
+Versao atual: v1-ux-fluxo-agendamento
+Ambiente: producao validada anteriormente na Vercel; novo marco pendente de push/deploy
 Formulario: dinamico, carregado de forms/form_questions
 Agendamento: Google Calendar + Google Meet
 Persistencia: Supabase
@@ -28,6 +28,7 @@ Persistencia: Supabase
 | Fluxo completo em producao | Concluido | `v1-agendamento-producao` |
 | Roadmap de produto | Concluido | `0a9d429` |
 | Formularios dinamicos no banco | Concluido | `v1-formularios-dinamicos` |
+| UX guiada e confirmacao de agendamento | Concluido localmente | `v1-ux-fluxo-agendamento` |
 
 ## Tabela visual de progresso
 
@@ -48,18 +49,20 @@ Legenda:
 | Agendamento | Pagina `/agendamento` | [x] | Link direto funcionando | Melhorar UX | Pode virar link por tipo de atendimento. |
 | Agendamento | Consulta de disponibilidade | [x] | `/api/availability` validado | Limitar dias futuros | Ainda baseada em regras de env. |
 | Agendamento | Criacao de evento | [x] | Evento + Meet criados | Melhorar confirmacao | Confirmacao pode mostrar mais detalhes. |
-| Agendamento | Fluxo formulario -> agenda | [x] | Testado local e producao | Revalidar com formulario dinamico | Principal fluxo de conversao. |
+| Agendamento | Fluxo formulario -> agenda | [x] | Testado local e producao | Revalidar apos deploy do novo UX | Principal fluxo de conversao. |
+| Agendamento | Modal de revisao antes de confirmar | [x] | Fluxos direto e pos-formulario atualizados | Validar em producao | Reduz envio acidental. |
+| Agendamento | Tela final com resumo | [x] | Mostra data, horario, formato e links | Adicionar agendar outro horario | Melhora clareza do pos-submit. |
 | Formularios | Formulario fixo inicial | [x] | Primeira versao entregue | Substituido por dinamico | Mantido como marco historico. |
 | Formularios | Tabelas dinamicas | [x] | `forms`, `form_questions`, `dynamic_form_submissions` criadas | Manter schema | Primeira base para workflows. |
 | Formularios | Perguntas vindas do banco | [x] | Frontend renderiza `form_questions` | Validar producao | Permite iterar sem deploy. |
 | Formularios | Salvamento em JSONB | [x] | `dynamic_form_submissions.answers` validado localmente | Validar producao | Flexivel agora, relatorios avancados depois. |
+| Formularios | Conversa guiada no formulario | [x] | Uma pergunta por etapa, Enter avanca com foco | Refinar microcopy | Base de experiencia acolhedora. |
 | Formularios | Guia para criar perguntas | [x] | `docs/formularios-dinamicos.md` | Usar no piloto | Usar como operacao manual inicial. |
 | Documentacao | Progresso e roadmap | [x] | `docs/progresso.md` e `docs/roadmap.md` | Atualizar por marco | Atualizar ao fim de cada marco. |
 | Documentacao | Guia Google Calendar | [x] | `docs/google-calendar.md` | Manter | Importante para reproduzir OAuth. |
-| Documentacao | Visao executiva de status | [~] | `docs/status.md` criado | Commitar | Este arquivo vira painel de retomada. |
-| Produto | UX publica refinada | [~] | Calendario visual e resumo lateral prontos | Ciclo 2A | Boa o suficiente para piloto. |
-| Produto | Conversa guiada no formulario | [ ] | Backlog aprovado | Refinar perguntas e layout do formulario | Transformar formulario em jornada de acolhimento. |
-| Produto | Confirmacao final completa | [ ] | Ainda nao mostra data/hora/e-mail final | Implementar | Melhoria curta e de alto valor. |
+| Documentacao | Visao executiva de status | [x] | `docs/status.md` atualizado | Atualizar por marco | Este arquivo vira painel de retomada. |
+| Produto | UX publica refinada | [x] | Formulario guiado, calendario, modal e sucesso prontos | Validar em producao | Boa o suficiente para piloto. |
+| Produto | Confirmacao final completa | [x] | Mostra data/hora/e-mail e links finais | Adicionar agendar outro horario | Melhoria curta concluida. |
 | Produto | Botao agendar outro horario | [ ] | Ainda nao existe | Implementar |baixa prioridade  |
 | Produto | Limite de datas futuras | [ ] | `GOOGLE_DAYS_AHEAD` ainda nao aplicado na UI/API | Implementar | Evita agendamentos longe demais. |
 | Arquitetura | Modularizacao do frontend | [ ] | `App.jsx` ainda concentra muita coisa | Separar modulos | prioridade  |
@@ -74,11 +77,14 @@ Legenda:
 - Salvamento de respostas no Supabase.
 - Perguntas carregadas dinamicamente do banco.
 - Configuracao manual de perguntas via Supabase.
+- Formulario guiado em etapas.
 - Pagina direta `/agendamento`.
 - Consulta de disponibilidade no Google Calendar.
 - Criacao de evento no Google Calendar.
 - Geracao de link Google Meet.
 - Convite por e-mail.
+- Modal de revisao antes de confirmar agendamento.
+- Tela final de sucesso com resumo.
 - Deploy na Vercel.
 
 ## Documentacao criada
@@ -103,9 +109,9 @@ Legenda:
 
 | Item | Prioridade | Observacao |
 | --- | --- | --- |
-| Validar deploy apos formularios dinamicos | Alta | Confirmar que a Vercel esta usando a versao `v1-formularios-dinamicos`. |
-| Testar formulario dinamico em producao | Alta | Enviar resposta real e conferir `dynamic_form_submissions`. |
-| Testar formulario -> agendamento em producao | Alta | Garantir que o novo salvamento nao quebrou o fluxo. |
+| Fazer push da tag `v1-ux-fluxo-agendamento` | Alta | Marco atual esta sendo fechado localmente. |
+| Deploy/validacao em producao do novo UX | Alta | Testar formulario guiado, modal e sucesso final. |
+| Testar formulario -> agendamento em producao | Alta | Garantir que o modal de revisao funciona no fluxo principal. |
 | Atualizar status apos validacao | Media | Registrar nos docs se producao passou. |
 
 ## Proximo ciclo recomendado
@@ -138,6 +144,7 @@ Escopo sugerido:
 v1-agendamento-feature-basica
 v1-agendamento-producao
 v1-formularios-dinamicos
+v1-ux-fluxo-agendamento
 ```
 
 ## Como retomar o projeto

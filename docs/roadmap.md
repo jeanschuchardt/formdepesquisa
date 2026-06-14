@@ -54,12 +54,16 @@ Resultado esperado:
 
 Objetivo: deixar a experiencia publica mais clara e confiavel.
 
-Status: proximo ciclo recomendado.
+Status: parcialmente concluido em `v1-ux-fluxo-agendamento`.
 
 Escopo:
 
-- Refinar responsividade do calendario e dos horarios.
-- Mostrar data e horario escolhidos na tela de sucesso.
+- Refinar responsividade do calendario e dos horarios. Concluido parcialmente.
+- Mostrar data e horario escolhidos na tela de sucesso. Concluido.
+- Adicionar revisao antes de confirmar agendamento. Concluido.
+- Melhorar fluxo direto `/agendamento` com modal de dados e confirmacao. Concluido.
+- Melhorar fluxo `formulario -> agendamento` com modal de revisao. Concluido.
+- Melhorar navegacao por teclado no formulario guiado. Concluido.
 - Adicionar botao para agendar outro horario.
 - Melhorar mensagens quando nao houver horarios disponiveis.
 - Validar e-mail antes de confirmar agendamento.
@@ -72,7 +76,7 @@ Resultado esperado:
 
 Primeiro recorte sugerido:
 
-- Confirmacao final com data, horario e e-mail.
+- Confirmacao final com data, horario e e-mail. Concluido.
 - Botao para agendar outro horario.
 - Mensagens melhores para estados vazios e erros.
 - Validacao simples de e-mail.

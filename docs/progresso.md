@@ -58,6 +58,13 @@ Variaveis necessarias no ambiente:
 - Branch `main` e tag `v1-agendamento-feature-basica` enviadas para o GitHub.
 - Deploy na Vercel realizado com sucesso.
 - Fluxo em producao validado com sucesso.
+- Fluxo guiado de formulario implementado com uma pergunta por etapa, foco automatico ao avancar
+  com Enter e selecao visual mais limpa.
+- Tela de agendamento refinada no modelo calendario + horarios, com lista de horarios em rolagem
+  propria para evitar scroll principal em desktop.
+- Fluxo direto `/agendamento` passou a usar modal para dados, revisao antes de confirmar e tela
+  final de sucesso com resumo.
+- Fluxo `formulario -> agendamento` passou a abrir modal de revisao antes de criar o evento.
 
 ## Pendencias
 
@@ -99,28 +106,32 @@ Decisoes e hipoteses atuais:
 
 ## Marco atual
 
-`v1-agendamento-producao` esta concluida.
+`v1-ux-fluxo-agendamento` esta em fechamento.
 
-O produto ja tem uma primeira versao funcional, publicada e validada:
+O produto ja tem uma versao funcional publicada e uma evolucao importante de UX localmente
+validada:
 
 - formulario base funcionando;
+- formulario dinamico carregado do Supabase;
+- experiencia de formulario em formato guiado;
 - persistencia no Supabase;
 - integracao com Google Calendar;
 - criacao de evento com Google Meet;
 - pagina direta `/agendamento`;
 - fluxo formulario -> agendamento;
+- modal de revisao antes de confirmar agendamento;
+- tela final de sucesso com data, horario, formato e links;
 - deploy na Vercel;
 - validacao local e em producao;
 - documentacao base criada.
 
 ## Proxima evolucao recomendada
 
-Entrar no Ciclo 2: UX publica e confiabilidade.
+Finalizar validacao visual/local do marco `v1-ux-fluxo-agendamento` e depois entrar em
+modularizacao tecnica.
 
-Escopo sugerido para o Ciclo 2A:
+Escopo remanescente sugerido para o Ciclo 2A:
 
-- Mostrar data e horario escolhidos na confirmacao final.
-- Mostrar e-mail usado no agendamento.
 - Adicionar botao para agendar outro horario.
 - Melhorar mensagem quando nao houver horarios disponiveis.
 - Melhorar mensagens de erro do Google Calendar.

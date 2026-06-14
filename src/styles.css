@@ -688,6 +688,29 @@ button:disabled {
   align-items: start;
 }
 
+.submitted-scheduling-page {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  padding: 0;
+  background: #ffffff;
+  place-items: center;
+}
+
+.submitted-scheduling-panel {
+  width: min(100%, 1180px);
+  height: 100dvh;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.submitted-scheduling-panel .next-step-panel {
+  margin: 0;
+}
+
 .minimal-scheduling-page {
   min-height: 100dvh;
   padding: 0;
@@ -704,6 +727,10 @@ button:disabled {
   border: 0;
   background: transparent;
   box-shadow: none;
+}
+
+.minimal-scheduling-panel:has(.booking-success-panel) {
+  width: 100%;
 }
 
 .scheduling-heading {
@@ -770,15 +797,6 @@ button:disabled {
 
 .calendly-flow {
   overflow: hidden;
-}
-
-.calendly-flow.contact-step-visible .schedule-main {
-  padding-top: clamp(22px, 3vw, 34px);
-  padding-bottom: clamp(22px, 3vw, 34px);
-}
-
-.calendly-flow.contact-step-visible .section-heading {
-  display: none;
 }
 
 .schedule-main {
@@ -976,6 +994,10 @@ button:disabled {
   overscroll-behavior: contain;
 }
 
+.submitted-scheduling-panel .time-list {
+  max-height: min(300px, 34vh);
+}
+
 .time-list::-webkit-scrollbar {
   width: 8px;
 }
@@ -983,10 +1005,6 @@ button:disabled {
 .time-list::-webkit-scrollbar-thumb {
   border-radius: 999px;
   background: #d4e3db;
-}
-
-.contact-step-visible .time-list {
-  max-height: min(250px, 34vh);
 }
 
 .slot-button {
@@ -1047,16 +1065,6 @@ button:disabled {
   font-weight: 750;
 }
 
-.contact-confirmation {
-  margin-top: 22px;
-  padding-top: 20px;
-}
-
-.contact-submit-button {
-  width: min(100%, 320px);
-  margin-top: 20px;
-}
-
 .summary-label {
   margin-bottom: 6px;
   color: #2f8065;
@@ -1094,6 +1102,138 @@ button:disabled {
 
 .schedule-summary dl div:last-child {
   border-bottom: 0;
+}
+
+.modal-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  padding: 24px;
+  background: rgba(24, 51, 43, 0.22);
+  backdrop-filter: blur(5px);
+  place-items: center;
+}
+
+.contact-modal {
+  position: relative;
+  width: min(100%, 620px);
+  max-height: min(92vh, 720px);
+  overflow-y: auto;
+  padding: clamp(24px, 4vw, 36px);
+  border: 1px solid #d9e7df;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 28px 80px rgba(24, 51, 43, 0.2);
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: inline-grid;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  border-radius: 999px;
+  background: #f1f6f3;
+  color: #52645d;
+  font-size: 1.4rem;
+  line-height: 1;
+  place-items: center;
+}
+
+.modal-close:hover {
+  background: #e5eee9;
+  color: #24473f;
+}
+
+.modal-heading {
+  max-width: 500px;
+  margin-bottom: 24px;
+}
+
+.modal-heading h2 {
+  margin: 0 0 8px;
+  color: #18332b;
+  font-size: clamp(1.8rem, 4vw, 2.45rem);
+  line-height: 1.1;
+}
+
+.modal-heading p:not(.summary-label) {
+  margin: 0;
+  color: #5f6c67;
+}
+
+.modal-contact-grid {
+  grid-template-columns: 1fr;
+}
+
+.modal-contact-grid .field:last-child {
+  grid-column: auto;
+}
+
+.modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.modal-actions .secondary-button,
+.modal-actions .schedule-button {
+  width: auto;
+  min-width: 140px;
+}
+
+.review-actions .schedule-button {
+  min-width: 200px;
+}
+
+.review-details,
+.confirmation-details {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  border: 1px solid #e2ece7;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fbfdfc;
+}
+
+.review-details div,
+.confirmation-details div {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 18px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e8f0ec;
+}
+
+.review-details div:last-child,
+.confirmation-details div:last-child {
+  border-bottom: 0;
+}
+
+.review-details dt,
+.confirmation-details dt {
+  color: #6b7b74;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.review-details dd,
+.confirmation-details dd {
+  min-width: 0;
+  margin: 0;
+  color: #18332b;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  text-transform: none;
 }
 
 .schedule-summary dt {
@@ -1139,6 +1279,48 @@ button:disabled {
 
 .schedule-warning strong {
   color: #7d3f12;
+}
+
+.booking-success-panel {
+  display: grid;
+  width: 100%;
+  min-height: 100dvh;
+  padding: clamp(24px, 5vw, 56px);
+  border: 0;
+  background: #fbfdfc;
+  place-items: center;
+}
+
+.success-card {
+  width: min(100%, 680px);
+  padding: clamp(28px, 5vw, 48px);
+  border: 1px solid #dce9e2;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(35, 49, 43, 0.1);
+  text-align: left;
+}
+
+.success-card .confirmation-mark {
+  margin-bottom: 18px;
+}
+
+.success-card h2 {
+  max-width: 560px;
+  margin-bottom: 12px;
+  color: #18332b;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  line-height: 1.05;
+}
+
+.success-card > p {
+  max-width: 560px;
+  margin-bottom: 24px;
+  color: #5f6c67;
+}
+
+.success-card .booking-links {
+  margin-top: 24px;
 }
 
 .success-panel {
@@ -1313,6 +1495,45 @@ button:disabled {
   .calendar-nav {
     width: 34px;
     min-width: 34px;
+  }
+
+  .modal-backdrop {
+    padding: 12px;
+    place-items: end center;
+  }
+
+  .contact-modal {
+    width: 100%;
+    max-height: 92vh;
+    padding: 24px 18px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .modal-close {
+    width: 36px;
+    min-width: 36px;
+  }
+
+  .modal-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions .secondary-button,
+  .modal-actions .schedule-button {
+    width: 100%;
+  }
+
+  .review-details div,
+  .confirmation-details div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .success-card {
+    padding: 24px 18px;
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .booking-links {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { isSupabaseConfigured, supabase } from './lib/supabase';
 
 const FORM_SLUG = 'acolhimento-inicial';
@@ -255,6 +255,8 @@ function SchedulingPanel({ submittedData = null, standalone = false }) {
   const [selectedSlot, setSelectedSlot] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [contactModalStep, setContactModalStep] = useState('details');
   const [bookingResult, setBookingResult] = useState(null);
   const [error, setError] = useState('');
 
@@ -262,12 +264,49 @@ function SchedulingPanel({ submittedData = null, standalone = false }) {
   const selectedSlotLabel = slots.find((slot) => slot.start === selectedSlot)?.label;
   const todayValue = formatDateForInput(new Date());
   const calendarDays = buildCalendarDays(visibleMonth);
-  const shouldShowContactFields = !hasSubmittedContact && Boolean(selectedSlot);
   const canConfirm =
     Boolean(selectedSlot) &&
     Boolean(contactData.full_name.trim()) &&
     Boolean(contactData.email.trim()) &&
     !isBooking;
+
+  function closeContactModal() {
+    setIsContactModalOpen(false);
+    setContactModalStep('details');
+    setError('');
+  }
+
+  function openContactModal() {
+    setContactModalStep('details');
+    setIsContactModalOpen(true);
+    setError('');
+  }
+
+  function openReviewModal() {
+    if (!selectedSlot) {
+      setError('Selecione um horario para continuar.');
+      return;
+    }
+
+    setContactModalStep('review');
+    setIsContactModalOpen(true);
+    setError('');
+  }
+
+  function handleReviewBooking() {
+    if (!selectedSlot) {
+      setError('Selecione um horario para continuar.');
+      return;
+    }
+
+    if (!contactData.full_name.trim() || !contactData.email.trim()) {
+      setError('Informe nome e e-mail para revisar o agendamento.');
+      return;
+    }
+
+    setError('');
+    setContactModalStep('review');
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -344,15 +383,31 @@ function SchedulingPanel({ submittedData = null, standalone = false }) {
 
   if (bookingResult) {
     return (
-      <section className="next-step-panel success-panel" aria-live="polite">
-        <div className="confirmation-mark" aria-hidden="true">✓</div>
-        <div>
+      <section className="booking-success-panel" aria-live="polite">
+        <div className="success-card">
+          <div className="confirmation-mark" aria-hidden="true">✓</div>
           <p className="step-kicker">Agendamento confirmado</p>
           <h2>Sua conversa foi agendada</h2>
           <p>
-            O convite foi criado no Google Calendar e enviado para o e-mail informado. O link do
-            Google Meet tambem esta disponivel abaixo.
+            Enviamos o convite para {contactData.email}. Guarde este resumo e acesse o Google Meet
+            pelo link abaixo quando chegar o horario.
           </p>
+
+          <dl className="confirmation-details">
+            <div>
+              <dt>Data</dt>
+              <dd>{formatSelectedDate(selectedDate)}</dd>
+            </div>
+            <div>
+              <dt>Horario</dt>
+              <dd>{selectedSlotLabel}</dd>
+            </div>
+            <div>
+              <dt>Formato</dt>
+              <dd>Google Meet</dd>
+            </div>
+          </dl>
+
           <div className="booking-links">
             {bookingResult.meetLink ? (
               <a className="schedule-button" href={bookingResult.meetLink} target="_blank" rel="noreferrer">
@@ -371,14 +426,7 @@ function SchedulingPanel({ submittedData = null, standalone = false }) {
   }
 
   return (
-    <section
-      className={
-        shouldShowContactFields
-          ? 'next-step-panel scheduling-flow calendly-flow contact-step-visible'
-          : 'next-step-panel scheduling-flow calendly-flow'
-      }
-      aria-live="polite"
-    >
+    <section className="next-step-panel scheduling-flow calendly-flow" aria-live="polite">
       <aside className="schedule-summary" aria-label="Resumo do agendamento">
         <p className="summary-label">{standalone ? 'Sessao gratuita' : 'Proximo passo'}</p>
         <h3>{standalone ? 'Conversa inicial' : 'Agendamento da conversa'}</h3>
@@ -483,6 +531,7 @@ function SchedulingPanel({ submittedData = null, standalone = false }) {
                       onClick={() => {
                         setSelectedDate(dateValue);
                         setSelectedSlot('');
+                        closeContactModal();
                       }}
                     >
                       {day.getDate()}
@@ -511,7 +560,12 @@ function SchedulingPanel({ submittedData = null, standalone = false }) {
                       className={selectedSlot === slot.start ? 'slot-button selected' : 'slot-button'}
                       key={slot.start}
                       type="button"
-                      onClick={() => setSelectedSlot(slot.start)}
+                      onClick={() => {
+                        setSelectedSlot(slot.start);
+                        if (!hasSubmittedContact) {
+                          openContactModal();
+                        }
+                      }}
                     >
                       {slot.label}
                     </button>
@@ -525,61 +579,145 @@ function SchedulingPanel({ submittedData = null, standalone = false }) {
                 <button
                   className="schedule-button"
                   type="button"
-                  onClick={handleBooking}
+                  onClick={openReviewModal}
                   disabled={!canConfirm}
                 >
-                  {isBooking ? 'Agendando...' : selectedSlot ? 'Confirmar horario' : 'Escolha um horario'}
+                  {selectedSlot ? 'Revisar agendamento' : 'Escolha um horario'}
                 </button>
               ) : null}
             </div>
           </div>
         </div>
 
-        {shouldShowContactFields ? (
-          <div className="schedule-section contact-confirmation">
-            <div className="schedule-section-title">
-              <span>2</span>
-              <strong>Seus dados para confirmar</strong>
-            </div>
-            <div className="scheduling-contact-grid">
-              <TextField
-                id="schedule-full-name"
-                label="Nome completo"
-                value={contactData.full_name}
-                onChange={(value) => setContactData((current) => ({ ...current, full_name: value }))}
-                placeholder="Seu nome completo"
-              />
-              <TextField
-                id="schedule-email"
-                label="E-mail"
-                type="email"
-                value={contactData.email}
-                onChange={(value) => setContactData((current) => ({ ...current, email: value }))}
-                placeholder="voce@email.com"
-              />
-              <TextField
-                id="schedule-whatsapp"
-                label="WhatsApp"
-                type="tel"
-                value={contactData.whatsapp}
-                onChange={(value) => setContactData((current) => ({ ...current, whatsapp: value }))}
-                required={false}
-                placeholder="(00) 00000-0000"
-              />
-            </div>
-            <button
-              className="schedule-button contact-submit-button"
-              type="button"
-              onClick={handleBooking}
-              disabled={!canConfirm}
-            >
-              {isBooking ? 'Agendando...' : 'Confirmar horario'}
-            </button>
-          </div>
-        ) : null}
-
         {error ? <p className="submit-error">Erro ao agendar: {error}</p> : null}
       </div>
+
+      {isContactModalOpen ? (
+        <div className="modal-backdrop" role="presentation">
+          <section
+            className="contact-modal"
+            role="dialog"
+            aria-labelledby="contact-modal-title"
+            aria-modal="true"
+          >
+            <button
+              className="modal-close"
+              type="button"
+              onClick={closeContactModal}
+              aria-label="Fechar dados de confirmacao"
+            >
+              ×
+            </button>
+            {contactModalStep === 'details' && !hasSubmittedContact ? (
+              <>
+                <div className="modal-heading">
+                  <p className="summary-label">Seus dados</p>
+                  <h2 id="contact-modal-title">Complete seus dados</h2>
+                  <p>
+                    Vamos enviar o convite para {formatSelectedDate(selectedDate)}
+                    {selectedSlotLabel ? ` as ${selectedSlotLabel}` : ''}.
+                  </p>
+                </div>
+
+                <div className="scheduling-contact-grid modal-contact-grid">
+                  <TextField
+                    id="schedule-full-name"
+                    label="Nome completo"
+                    value={contactData.full_name}
+                    onChange={(value) => setContactData((current) => ({ ...current, full_name: value }))}
+                    placeholder="Seu nome completo"
+                  />
+                  <TextField
+                    id="schedule-email"
+                    label="E-mail"
+                    type="email"
+                    value={contactData.email}
+                    onChange={(value) => setContactData((current) => ({ ...current, email: value }))}
+                    placeholder="voce@email.com"
+                  />
+                  <TextField
+                    id="schedule-whatsapp"
+                    label="WhatsApp"
+                    type="tel"
+                    value={contactData.whatsapp}
+                    onChange={(value) => setContactData((current) => ({ ...current, whatsapp: value }))}
+                    required={false}
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
+
+                {error ? <p className="submit-error">Erro ao agendar: {error}</p> : null}
+
+                <div className="modal-actions">
+                  <button className="secondary-button" type="button" onClick={closeContactModal}>
+                    Cancelar
+                  </button>
+                  <button
+                    className="schedule-button"
+                    type="button"
+                    onClick={handleReviewBooking}
+                    disabled={!canConfirm}
+                  >
+                    Revisar agendamento
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="modal-heading">
+                  <p className="summary-label">Revise antes de enviar</p>
+                  <h2 id="contact-modal-title">Confirmar agendamento?</h2>
+                  <p>Confira os dados abaixo antes de criar o evento e enviar o convite.</p>
+                </div>
+
+                <dl className="review-details">
+                  <div>
+                    <dt>Nome</dt>
+                    <dd>{contactData.full_name}</dd>
+                  </div>
+                  <div>
+                    <dt>E-mail</dt>
+                    <dd>{contactData.email}</dd>
+                  </div>
+                  <div>
+                    <dt>WhatsApp</dt>
+                    <dd>{contactData.whatsapp || 'Nao informado'}</dd>
+                  </div>
+                  <div>
+                    <dt>Data</dt>
+                    <dd>{formatSelectedDate(selectedDate)}</dd>
+                  </div>
+                  <div>
+                    <dt>Horario</dt>
+                    <dd>{selectedSlotLabel}</dd>
+                  </div>
+                </dl>
+
+                {error ? <p className="submit-error">Erro ao agendar: {error}</p> : null}
+
+                <div className="modal-actions review-actions">
+                  <button className="secondary-button" type="button" onClick={closeContactModal}>
+                    Cancelar
+                  </button>
+                  {!hasSubmittedContact ? (
+                    <button className="secondary-button" type="button" onClick={() => setContactModalStep('details')}>
+                      Editar dados
+                    </button>
+                  ) : null}
+                  <button
+                    className="schedule-button"
+                    type="button"
+                    onClick={handleBooking}
+                    disabled={!canConfirm}
+                  >
+                    {isBooking ? 'Agendando...' : 'Confirmar agendamento'}
+                  </button>
+                </div>
+              </>
+            )}
+          </section>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -608,6 +746,7 @@ export default function App() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [validationMessage, setValidationMessage] = useState('');
   const [hasStartedForm, setHasStartedForm] = useState(false);
+  const shouldFocusNextStepRef = useRef(false);
 
   const steps = useMemo(() => buildFormSteps(questions), [questions]);
   const currentStep = steps[currentStepIndex];
@@ -617,6 +756,26 @@ export default function App() {
     () => (steps.length > 0 ? Math.round(((currentStepIndex + 1) / steps.length) * 100) : 0),
     [currentStepIndex, steps.length]
   );
+
+  useEffect(() => {
+    if (!shouldFocusNextStepRef.current) {
+      return undefined;
+    }
+
+    shouldFocusNextStepRef.current = false;
+
+    const frameId = window.requestAnimationFrame(() => {
+      const nextField = document.querySelector(
+        '.guided-form .step-card input:not([type="radio"]):not([type="checkbox"]), .guided-form .step-card textarea, .guided-form .step-card input[type="radio"], .guided-form .step-card input[type="checkbox"]'
+      );
+
+      if (nextField instanceof HTMLElement) {
+        nextField.focus();
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [currentStepIndex]);
 
   useEffect(() => {
     if (isDirectSchedulingPage) {
@@ -723,10 +882,11 @@ export default function App() {
 
   function handleNext() {
     if (!validateCurrentStep()) {
-      return;
+      return false;
     }
 
     setCurrentStepIndex((stepIndex) => Math.min(stepIndex + 1, steps.length - 1));
+    return true;
   }
 
   function handlePrevious() {
@@ -747,7 +907,7 @@ export default function App() {
     event.preventDefault();
 
     if (!isLastStep && submitStatus !== 'submitting') {
-      handleNext();
+      shouldFocusNextStepRef.current = handleNext();
     }
   }
 
@@ -891,23 +1051,9 @@ export default function App() {
 
   if (submittedData) {
     return (
-      <main className="page-shell">
-        <section className="form-panel" aria-labelledby="submitted-title">
-          <div className="form-heading">
-            <div>
-              <p className="eyebrow">Formulario enviado</p>
-              <h1 id="submitted-title">Recebemos suas respostas</h1>
-              <p>
-                Agora escolha um horario para sua conversa. O convite sera enviado para o e-mail
-                informado no formulario.
-              </p>
-            </div>
-            <div className="heading-pill" aria-label="Proximo passo">
-              <strong>2</strong>
-              <span>agendar</span>
-            </div>
-          </div>
-
+      <main className="page-shell submitted-scheduling-page">
+        <section className="form-panel submitted-scheduling-panel" aria-labelledby="submitted-title">
+          <h1 className="visually-hidden" id="submitted-title">Escolha um horario para sua conversa</h1>
           <SchedulingPanel submittedData={submittedData} />
         </section>
       </main>
