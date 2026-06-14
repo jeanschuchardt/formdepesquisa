@@ -96,7 +96,7 @@ function getPlaceholder(question) {
     email: 'voce@email.com',
     state: 'UF ou estado',
     qualification: 'Profissao, ocupacao ou formacao',
-    current_situation: 'Conte de forma breve o que esta acontecendo no momento.'
+    current_situation: 'Conte com suas palavras o que esta acontecendo agora.'
   };
 
   return placeholders[question.key];
@@ -123,7 +123,7 @@ function getQuestionCopy(question) {
     },
     whatsapp: {
       eyebrow: 'Contato',
-      title: 'Qual WhatsApp podemos usar se precisarmos falar com voce?',
+      title: 'E qual WhatsApp podemos usar se precisarmos falar com voce?',
       helper: 'Use DDD e numero. Se preferir, pode repetir o contato principal.'
     },
     email: {
@@ -143,23 +143,23 @@ function getQuestionCopy(question) {
     },
     qualification: {
       eyebrow: 'Sobre voce',
-      title: 'Como voce descreveria sua ocupacao hoje?',
+      title: 'Se fizer sentido, como voce descreve sua ocupacao hoje?',
       helper: 'Pode ser profissao, formacao, ocupacao atual ou area de atuacao.'
     },
     attention_area: {
       eyebrow: 'Momento atual',
-      title: 'O que mais pede sua atencao neste momento?',
+      title: 'Qual tema parece mais presente para voce hoje?',
       helper: 'Escolha a opcao que mais se aproxima do que voce esta vivendo.'
     },
     duration: {
       eyebrow: 'Tempo',
-      title: 'Isso vem acontecendo ha quanto tempo?',
+      title: 'Ha quanto tempo isso vem acontecendo?',
       helper: 'Nao precisa ser exato. Escolha a faixa que fizer mais sentido.'
     },
     impact: {
       eyebrow: 'Impacto',
-      title: 'Quanto isso tem impactado sua vida atualmente?',
-      helper: 'Essa resposta ajuda a calibrar a conversa inicial.'
+      title: 'Quanto isso tem pesado na sua rotina?',
+      helper: 'Essa resposta ajuda a entender a intensidade do momento.'
     },
     expected_outcomes: {
       eyebrow: 'Expectativas',
@@ -168,28 +168,28 @@ function getQuestionCopy(question) {
     },
     previous_process: {
       eyebrow: 'Caminho anterior',
-      title: 'Voce ja participou de algum processo terapeutico?',
+      title: 'Voce ja fez algum processo de cuidado emocional ou autoconhecimento?',
       helper: 'Isso ajuda a entender sua familiaridade com esse tipo de trabalho.'
     },
     investment_moment: {
       eyebrow: 'Momento de decisao',
-      title: 'Se um acompanhamento fizer sentido, qual frase representa melhor seu momento?',
+      title: 'Se depois da conversa fizer sentido continuar, como voce ve esse momento?',
       helper: 'Nao existe resposta certa. A ideia e entender seu momento atual.'
     },
     online_availability: {
       eyebrow: 'Formato',
-      title: 'Voce tem disponibilidade para sessoes online por video?',
+      title: 'Voce consegue participar de uma conversa online por video?',
       helper: 'A conversa gratuita acontece por Google Meet.'
     },
     referral_source: {
       eyebrow: 'Origem',
-      title: 'Como voce conheceu este trabalho?',
+      title: 'Como voce chegou ate aqui?',
       helper: 'Essa informacao ajuda a entender os canais de chegada.'
     },
     current_situation: {
       eyebrow: 'Para finalizar',
-      title: 'Me conta brevemente o que voce esta vivendo hoje.',
-      helper: 'Escreva o que sentir que e importante para preparar a conversa gratuita.'
+      title: 'O que fez voce buscar essa conversa agora?',
+      helper: 'Conte do seu jeito o que esta acontecendo. Pode ser breve.'
     }
   };
 

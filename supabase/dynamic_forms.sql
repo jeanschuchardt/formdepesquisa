@@ -88,7 +88,7 @@ insert into public.forms (slug, title, description)
 values (
   'acolhimento-inicial',
   'Formulario de acolhimento',
-  'Formulario inicial para preparar a conversa gratuita.'
+  'Perguntas iniciais para preparar a conversa gratuita.'
 )
 on conflict (slug) do update
 set
@@ -127,134 +127,134 @@ cross join (
   values
     (
       'full_name',
-      'Nome completo',
-      null,
+      'Como posso te chamar?',
+      'Use o nome que voce prefere que apareca na nossa conversa.',
       'short_text',
       true,
       '[]',
       1
     ),
     (
-      'whatsapp',
-      'WhatsApp',
-      null,
-      'phone',
+      'email',
+      'Qual e o melhor e-mail para receber o convite?',
+      'O link do Google Meet sera enviado para esse e-mail.',
+      'email',
       true,
       '[]',
       2
     ),
     (
-      'email',
-      'E-mail',
-      null,
-      'email',
+      'whatsapp',
+      'E qual WhatsApp podemos usar se precisarmos falar com voce?',
+      'Use DDD e numero.',
+      'phone',
       true,
       '[]',
       3
     ),
     (
-      'city',
-      'Cidade',
-      null,
-      'short_text',
+      'attention_area',
+      'Qual tema parece mais presente para voce hoje?',
+      'Escolha a opcao que mais se aproxima do que voce esta vivendo.',
+      'single_choice',
       true,
-      '[]',
+      '["Relacionamento amoroso","Familia","Ansiedade, sobrecarga ou emocao intensa","Autoestima e seguranca pessoal","Trabalho, carreira ou dinheiro","Proposito, espiritualidade ou sentido de vida","Decisao importante","Outro"]',
       4
     ),
     (
-      'state',
-      'Estado',
-      null,
-      'short_text',
+      'impact',
+      'Quanto isso tem pesado na sua rotina?',
+      'Essa resposta ajuda a entender a intensidade do momento.',
+      'single_choice',
       true,
-      '[]',
+      '["Leve, consigo lidar","Moderado, aparece com frequencia","Alto, tem afetado bastante","Muito alto, sinto que preciso de ajuda logo"]',
       5
     ),
     (
-      'qualification',
-      'Qualificacao',
-      'Profissao, ocupacao ou formacao.',
-      'short_text',
+      'duration',
+      'Ha quanto tempo isso vem acontecendo?',
+      'Nao precisa ser exato. Escolha a faixa que fizer mais sentido.',
+      'single_choice',
       true,
-      '[]',
+      '["Comecou recentemente","Alguns meses","Mais de um ano","E algo antigo ou repetitivo"]',
       6
     ),
     (
-      'attention_area',
-      'Qual area da sua vida mais precisa de atencao neste momento?',
-      null,
-      'single_choice',
-      true,
-      '["Relacionamento amoroso","Familia","Ansiedade e sobrecarga emocional","Autoestima","Trabalho e carreira","Espiritualidade e proposito","Tomada de decisao","Outro"]',
-      7
-    ),
-    (
-      'duration',
-      'Ha quanto tempo essa situacao esta presente?',
-      null,
-      'single_choice',
-      true,
-      '["Menos de 3 meses","Entre 3 meses e 1 ano","Entre 1 e 3 anos","Mais de 3 anos"]',
-      8
-    ),
-    (
-      'impact',
-      'Quanto essa situacao impacta sua vida atualmente?',
-      null,
-      'single_choice',
-      true,
-      '["Pouco","Moderadamente","Muito","Extremamente"]',
-      9
-    ),
-    (
       'expected_outcomes',
-      'O que voce espera obter com essa conversa?',
+      'O que voce gostaria de levar dessa conversa?',
       'Escolha uma ou mais opcoes.',
       'multi_choice',
       true,
-      '["Clareza sobre minha situacao","Melhorar relacionamentos","Resolver conflitos familiares","Compreender padroes repetitivos","Tomar uma decisao importante","Desenvolver autoconhecimento","Encontrar mais equilibrio emocional"]',
-      10
+      '["Clareza sobre o que estou vivendo","Entender melhor meus relacionamentos","Olhar para conflitos familiares","Perceber padroes que se repetem","Apoio para tomar uma decisao","Mais autoconhecimento","Mais equilibrio emocional"]',
+      7
     ),
     (
       'previous_process',
-      'Voce ja participou de algum processo terapeutico anteriormente?',
-      null,
+      'Voce ja fez algum processo de cuidado emocional ou autoconhecimento?',
+      'Isso ajuda a entender sua familiaridade com esse tipo de trabalho.',
       'single_choice',
       true,
-      '["Nunca","Terapia","Constelacao Familiar","Coaching","Mentoria","Mais de uma das opcoes acima"]',
-      11
-    ),
-    (
-      'investment_moment',
-      'Caso perceba que um acompanhamento pode ajuda-lo(a), qual opcao melhor representa seu momento atual?',
-      null,
-      'single_choice',
-      true,
-      '["Estou pronto(a) para investir no meu desenvolvimento pessoal e emocional.","Gostaria de entender melhor antes de decidir.","Preciso avaliar o investimento financeiro.","Preciso conversar com minha familia/parceiro(a).","Busco apenas a sessao gratuita."]',
-      12
+      '["Nunca fiz","Ja fiz terapia","Ja participei de constelacao familiar","Ja fiz mentoria, coaching ou algo parecido","Ja fiz mais de um tipo de processo"]',
+      8
     ),
     (
       'online_availability',
-      'Voce possui disponibilidade para realizar sessoes online por video?',
-      null,
+      'Voce consegue participar de uma conversa online por video?',
+      'A conversa gratuita acontece por Google Meet.',
       'yes_no',
       true,
       '["Sim","Nao"]',
-      13
+      9
+    ),
+    (
+      'investment_moment',
+      'Se depois da conversa fizer sentido continuar, como voce ve esse momento?',
+      'Nao existe resposta certa. A ideia e entender seu momento atual.',
+      'single_choice',
+      true,
+      '["Estou aberto(a) a iniciar um acompanhamento","Quero entender melhor antes de decidir","Preciso avaliar investimento e agenda","Preciso conversar com alguem antes","Neste momento busco apenas a conversa gratuita"]',
+      10
     ),
     (
       'referral_source',
-      'Como conheceu meu trabalho?',
-      null,
+      'Como voce chegou ate aqui?',
+      'Essa informacao ajuda a entender os canais de chegada.',
       'single_choice',
-      true,
-      '["Instagram","Indicacao","WhatsApp","Cerimonia","Google","Outro"]',
+      false,
+      '["Instagram","Indicacao de alguem","WhatsApp","Evento ou vivencia presencial","Google ou pesquisa online","Outro caminho"]',
+      11
+    ),
+    (
+      'city',
+      'Em qual cidade voce esta?',
+      'Opcional. Ajuda a entender contexto e fuso.',
+      'short_text',
+      false,
+      '[]',
+      12
+    ),
+    (
+      'state',
+      'E em qual estado?',
+      'Opcional. Pode informar a UF ou o nome do estado.',
+      'short_text',
+      false,
+      '[]',
+      13
+    ),
+    (
+      'qualification',
+      'Se fizer sentido, como voce descreve sua ocupacao hoje?',
+      'Opcional. Pode ser profissao, formacao, ocupacao atual ou area de atuacao.',
+      'short_text',
+      false,
+      '[]',
       14
     ),
     (
       'current_situation',
-      'Descreva brevemente o que voce esta vivendo hoje e por que esta sessao gratuita seria importante para voce.',
-      null,
+      'O que fez voce buscar essa conversa agora?',
+      'Conte do seu jeito o que esta acontecendo. Pode ser breve.',
       'long_text',
       true,
       '[]',
