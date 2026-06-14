@@ -23,7 +23,7 @@ function TextField({ id, label, type = 'text', value, onChange, required = true,
 
 function RadioGroup({ legend, name, options, value, onChange }) {
   return (
-    <fieldset className="question">
+    <fieldset className="question choice-question">
       <legend>{legend}</legend>
       <div className="option-grid">
         {options.map((option) => (
@@ -55,12 +55,12 @@ function CheckboxGroup({ legend, options, values, onChange }) {
   }
 
   return (
-    <fieldset className="question">
+    <fieldset className="question choice-question">
       <legend>{legend}</legend>
       <p className="hint">Escolha uma ou mais opcoes.</p>
       <div className="option-grid">
         {options.map((option) => (
-          <label className="option" key={option}>
+          <label className="option checkbox-option" key={option}>
             <input
               type="checkbox"
               value={option}
@@ -82,24 +82,11 @@ function getInitialAnswers(questions) {
 }
 
 function buildFormSteps(questions) {
-  const contactQuestions = contactQuestionKeys
-    .map((key) => questions.find((question) => question.key === key))
-    .filter(Boolean);
-  const contactQuestionIds = new Set(contactQuestions.map((question) => question.id));
-  const questionSteps = questions
-    .filter((question) => !contactQuestionIds.has(question.id))
-    .map((question, index) => ({
-      id: question.key,
-      label: `Pergunta ${index + 1}`,
-      questions: [question]
-    }));
-
-  return [
-    ...(contactQuestions.length > 0
-      ? [{ id: 'contact', label: 'Contato', questions: contactQuestions }]
-      : []),
-    ...questionSteps
-  ];
+  return questions.map((question, index) => ({
+    id: question.key,
+    label: contactQuestionKeys.includes(question.key) ? 'Contato' : `Pergunta ${index + 1}`,
+    questions: [question]
+  }));
 }
 
 function getPlaceholder(question) {
@@ -125,6 +112,92 @@ function getInputType(question) {
   }
 
   return 'text';
+}
+
+function getQuestionCopy(question) {
+  const copyByKey = {
+    full_name: {
+      eyebrow: 'Primeiro passo',
+      title: 'Me conta como posso te chamar?',
+      helper: 'Use o nome que voce prefere que apareca na nossa conversa.'
+    },
+    whatsapp: {
+      eyebrow: 'Contato',
+      title: 'Qual WhatsApp podemos usar se precisarmos falar com voce?',
+      helper: 'Use DDD e numero. Se preferir, pode repetir o contato principal.'
+    },
+    email: {
+      eyebrow: 'Convite',
+      title: 'Qual e o melhor e-mail para receber o convite?',
+      helper: 'O link do Google Meet sera enviado para esse e-mail.'
+    },
+    city: {
+      eyebrow: 'Contexto',
+      title: 'Em qual cidade voce esta?',
+      helper: 'Isso ajuda a entender fuso, contexto e disponibilidade.'
+    },
+    state: {
+      eyebrow: 'Contexto',
+      title: 'E em qual estado?',
+      helper: 'Pode informar a UF ou o nome do estado.'
+    },
+    qualification: {
+      eyebrow: 'Sobre voce',
+      title: 'Como voce descreveria sua ocupacao hoje?',
+      helper: 'Pode ser profissao, formacao, ocupacao atual ou area de atuacao.'
+    },
+    attention_area: {
+      eyebrow: 'Momento atual',
+      title: 'O que mais pede sua atencao neste momento?',
+      helper: 'Escolha a opcao que mais se aproxima do que voce esta vivendo.'
+    },
+    duration: {
+      eyebrow: 'Tempo',
+      title: 'Isso vem acontecendo ha quanto tempo?',
+      helper: 'Nao precisa ser exato. Escolha a faixa que fizer mais sentido.'
+    },
+    impact: {
+      eyebrow: 'Impacto',
+      title: 'Quanto isso tem impactado sua vida atualmente?',
+      helper: 'Essa resposta ajuda a calibrar a conversa inicial.'
+    },
+    expected_outcomes: {
+      eyebrow: 'Expectativas',
+      title: 'O que voce gostaria de levar dessa conversa?',
+      helper: 'Voce pode escolher mais de uma opcao.'
+    },
+    previous_process: {
+      eyebrow: 'Caminho anterior',
+      title: 'Voce ja participou de algum processo terapeutico?',
+      helper: 'Isso ajuda a entender sua familiaridade com esse tipo de trabalho.'
+    },
+    investment_moment: {
+      eyebrow: 'Momento de decisao',
+      title: 'Se um acompanhamento fizer sentido, qual frase representa melhor seu momento?',
+      helper: 'Nao existe resposta certa. A ideia e entender seu momento atual.'
+    },
+    online_availability: {
+      eyebrow: 'Formato',
+      title: 'Voce tem disponibilidade para sessoes online por video?',
+      helper: 'A conversa gratuita acontece por Google Meet.'
+    },
+    referral_source: {
+      eyebrow: 'Origem',
+      title: 'Como voce conheceu este trabalho?',
+      helper: 'Essa informacao ajuda a entender os canais de chegada.'
+    },
+    current_situation: {
+      eyebrow: 'Para finalizar',
+      title: 'Me conta brevemente o que voce esta vivendo hoje.',
+      helper: 'Escreva o que sentir que e importante para preparar a conversa gratuita.'
+    }
+  };
+
+  return copyByKey[question.key] || {
+    eyebrow: 'Pergunta',
+    title: question.label,
+    helper: question.description
+  };
 }
 
 function formatDateForInput(date) {
@@ -189,6 +262,7 @@ function SchedulingPanel({ submittedData = null, standalone = false }) {
   const selectedSlotLabel = slots.find((slot) => slot.start === selectedSlot)?.label;
   const todayValue = formatDateForInput(new Date());
   const calendarDays = buildCalendarDays(visibleMonth);
+  const shouldShowContactFields = !hasSubmittedContact && Boolean(selectedSlot);
   const canConfirm =
     Boolean(selectedSlot) &&
     Boolean(contactData.full_name.trim()) &&
@@ -201,7 +275,6 @@ function SchedulingPanel({ submittedData = null, standalone = false }) {
     async function loadAvailability() {
       setIsLoading(true);
       setError('');
-      setSelectedSlot('');
       setBookingResult(null);
 
       try {
@@ -298,7 +371,41 @@ function SchedulingPanel({ submittedData = null, standalone = false }) {
   }
 
   return (
-    <section className="next-step-panel scheduling-flow" aria-live="polite">
+    <section
+      className={
+        shouldShowContactFields
+          ? 'next-step-panel scheduling-flow calendly-flow contact-step-visible'
+          : 'next-step-panel scheduling-flow calendly-flow'
+      }
+      aria-live="polite"
+    >
+      <aside className="schedule-summary" aria-label="Resumo do agendamento">
+        <p className="summary-label">{standalone ? 'Sessao gratuita' : 'Proximo passo'}</p>
+        <h3>{standalone ? 'Conversa inicial' : 'Agendamento da conversa'}</h3>
+        <p className="event-description">
+          Uma conversa online para entender o momento atual e combinar os proximos passos.
+        </p>
+
+        <dl>
+          <div>
+            <dt>Duracao</dt>
+            <dd>30 minutos</dd>
+          </div>
+          <div>
+            <dt>Formato</dt>
+            <dd>Google Meet</dd>
+          </div>
+          <div>
+            <dt>Data</dt>
+            <dd>{formatSelectedDate(selectedDate)}</dd>
+          </div>
+          <div>
+            <dt>Horario</dt>
+            <dd>{selectedSlotLabel || 'Selecione um horario'}</dd>
+          </div>
+        </dl>
+      </aside>
+
       <div className="schedule-main">
         <div className="section-heading">
           <p className="step-kicker">{standalone ? 'Agendamento' : 'Proximo passo'}</p>
@@ -311,11 +418,128 @@ function SchedulingPanel({ submittedData = null, standalone = false }) {
           </p>
         </div>
 
-        {!hasSubmittedContact ? (
-          <div className="schedule-section">
+        <div className="schedule-section">
+          <div className="schedule-section-title">
+            <span>1</span>
+            <strong>Data e horario</strong>
+          </div>
+
+          <div className="date-time-layout">
+            <div className="calendar-picker" aria-label="Calendario de datas disponiveis">
+              <div className="calendar-toolbar">
+                <strong>{formatMonthLabel(visibleMonth)}</strong>
+                <div className="calendar-nav-group">
+                  <button
+                    className="calendar-nav"
+                    type="button"
+                    onClick={() =>
+                      setVisibleMonth(
+                        (currentMonth) =>
+                          new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
+                      )
+                    }
+                    aria-label="Mes anterior"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    className="calendar-nav"
+                    type="button"
+                    onClick={() =>
+                      setVisibleMonth(
+                        (currentMonth) =>
+                          new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
+                      )
+                    }
+                    aria-label="Proximo mes"
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+
+              <div className="calendar-weekdays" aria-hidden="true">
+                {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'].map((weekday) => (
+                  <span key={weekday}>{weekday}</span>
+                ))}
+              </div>
+
+              <div className="calendar-days">
+                {calendarDays.map((day, index) => {
+                  if (!day) {
+                    return <span className="calendar-empty-day" key={`empty-${index}`} />;
+                  }
+
+                  const dateValue = formatDateForInput(day);
+                  const isPast = dateValue < todayValue;
+                  const isSelected = isSameDateValue(day, selectedDate);
+
+                  return (
+                    <button
+                      className={isSelected ? 'calendar-day selected' : 'calendar-day'}
+                      disabled={isPast}
+                      key={dateValue}
+                      type="button"
+                      onClick={() => {
+                        setSelectedDate(dateValue);
+                        setSelectedSlot('');
+                      }}
+                    >
+                      {day.getDate()}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="time-column" aria-label="Horarios disponiveis">
+              <div className="slots-header">
+                <strong>{formatSelectedDate(selectedDate)}</strong>
+                {isLoading ? <span>Buscando horarios...</span> : <span>{slots.length} horarios</span>}
+              </div>
+
+              {isLoading ? (
+                <div className="time-list" aria-hidden="true">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <span className="slot-skeleton" key={index} />
+                  ))}
+                </div>
+              ) : slots.length > 0 ? (
+                <div className="time-list">
+                  {slots.map((slot) => (
+                    <button
+                      className={selectedSlot === slot.start ? 'slot-button selected' : 'slot-button'}
+                      key={slot.start}
+                      type="button"
+                      onClick={() => setSelectedSlot(slot.start)}
+                    >
+                      {slot.label}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="week-empty">Nenhum horario disponivel para esta data.</p>
+              )}
+
+              {hasSubmittedContact ? (
+                <button
+                  className="schedule-button"
+                  type="button"
+                  onClick={handleBooking}
+                  disabled={!canConfirm}
+                >
+                  {isBooking ? 'Agendando...' : selectedSlot ? 'Confirmar horario' : 'Escolha um horario'}
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        {shouldShowContactFields ? (
+          <div className="schedule-section contact-confirmation">
             <div className="schedule-section-title">
-              <span>1</span>
-              <strong>Seus dados</strong>
+              <span>2</span>
+              <strong>Seus dados para confirmar</strong>
             </div>
             <div className="scheduling-contact-grid">
               <TextField
@@ -343,172 +567,28 @@ function SchedulingPanel({ submittedData = null, standalone = false }) {
                 placeholder="(00) 00000-0000"
               />
             </div>
+            <button
+              className="schedule-button contact-submit-button"
+              type="button"
+              onClick={handleBooking}
+              disabled={!canConfirm}
+            >
+              {isBooking ? 'Agendando...' : 'Confirmar horario'}
+            </button>
           </div>
         ) : null}
 
-        <div className="schedule-section">
-          <div className="schedule-section-title">
-            <span>{hasSubmittedContact ? '1' : '2'}</span>
-            <strong>Data e horario</strong>
-          </div>
-
-          <div className="calendar-picker" aria-label="Calendario de datas disponiveis">
-            <div className="calendar-toolbar">
-              <button
-                className="calendar-nav"
-                type="button"
-                onClick={() =>
-                  setVisibleMonth(
-                    (currentMonth) =>
-                      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
-                  )
-                }
-                aria-label="Mes anterior"
-              >
-                ‹
-              </button>
-              <strong>{formatMonthLabel(visibleMonth)}</strong>
-              <button
-                className="calendar-nav"
-                type="button"
-                onClick={() =>
-                  setVisibleMonth(
-                    (currentMonth) =>
-                      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
-                  )
-                }
-                aria-label="Proximo mes"
-              >
-                ›
-              </button>
-            </div>
-
-            <div className="calendar-weekdays" aria-hidden="true">
-              {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'].map((weekday) => (
-                <span key={weekday}>{weekday}</span>
-              ))}
-            </div>
-
-            <div className="calendar-days">
-              {calendarDays.map((day, index) => {
-                if (!day) {
-                  return <span className="calendar-empty-day" key={`empty-${index}`} />;
-                }
-
-                const dateValue = formatDateForInput(day);
-                const isPast = dateValue < todayValue;
-                const isSelected = isSameDateValue(day, selectedDate);
-
-                return (
-                  <button
-                    className={isSelected ? 'calendar-day selected' : 'calendar-day'}
-                    disabled={isPast}
-                    key={dateValue}
-                    type="button"
-                    onClick={() => setSelectedDate(dateValue)}
-                  >
-                    {day.getDate()}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="slots-header">
-            <strong>{formatSelectedDate(selectedDate)}</strong>
-            {isLoading ? <span>Buscando horarios...</span> : <span>{slots.length} horarios disponiveis</span>}
-          </div>
-
-          {isLoading ? (
-            <div className="slot-grid" aria-hidden="true">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <span className="slot-skeleton" key={index} />
-              ))}
-            </div>
-          ) : null}
-
-          {!isLoading && slots.length === 0 ? (
-            <div className="schedule-warning">
-              <strong>Nao ha horarios disponiveis nesta data.</strong>
-              <span>Escolha outro dia para ver novas opcoes.</span>
-            </div>
-          ) : null}
-
-          {!isLoading && slots.length > 0 ? (
-            <div className="slot-grid" role="group" aria-label="Horarios disponiveis">
-              {slots.map((slot) => (
-                <button
-                  className={selectedSlot === slot.start ? 'slot-button selected' : 'slot-button'}
-                  key={slot.start}
-                  type="button"
-                  onClick={() => setSelectedSlot(slot.start)}
-                >
-                  {slot.label}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
-
         {error ? <p className="submit-error">Erro ao agendar: {error}</p> : null}
       </div>
-
-      <aside className="schedule-summary" aria-label="Resumo do agendamento">
-        <div>
-          <p className="summary-label">Resumo</p>
-          <h3>Sessao gratuita</h3>
-          <dl>
-            <div>
-              <dt>Duracao</dt>
-              <dd>30 minutos</dd>
-            </div>
-            <div>
-              <dt>Formato</dt>
-              <dd>Google Meet</dd>
-            </div>
-            <div>
-              <dt>Data</dt>
-              <dd>{formatSelectedDate(selectedDate)}</dd>
-            </div>
-            <div>
-              <dt>Horario</dt>
-              <dd>{selectedSlotLabel || 'Selecione um horario'}</dd>
-            </div>
-          </dl>
-        </div>
-
-        <button
-          className="schedule-button"
-          type="button"
-          onClick={handleBooking}
-          disabled={!canConfirm}
-        >
-          {isBooking ? 'Agendando...' : selectedSlot ? 'Confirmar horario' : 'Escolha um horario'}
-        </button>
-      </aside>
     </section>
   );
 }
 
 function DirectSchedulingPage() {
   return (
-    <main className="page-shell scheduling-page">
-      <section className="form-panel scheduling-panel" aria-labelledby="scheduling-title">
-        <div className="form-heading">
-          <div>
-            <p className="eyebrow">Sessao gratuita</p>
-            <h1 id="scheduling-title">Agende sua conversa</h1>
-            <p>
-              Escolha um horario disponivel na agenda e informe seus dados para receber o convite com
-              Google Meet.
-            </p>
-          </div>
-          <div className="heading-pill" aria-label="Duracao da conversa">
-            <strong>30 min</strong>
-            <span>online</span>
-          </div>
-        </div>
-
+    <main className="page-shell scheduling-page minimal-scheduling-page">
+      <section className="form-panel scheduling-panel minimal-scheduling-panel" aria-labelledby="scheduling-title">
+        <h1 className="visually-hidden" id="scheduling-title">Agende sua conversa</h1>
         <SchedulingPanel standalone />
       </section>
     </main>
@@ -527,6 +607,7 @@ export default function App() {
   const [submitError, setSubmitError] = useState('');
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [validationMessage, setValidationMessage] = useState('');
+  const [hasStartedForm, setHasStartedForm] = useState(false);
 
   const steps = useMemo(() => buildFormSteps(questions), [questions]);
   const currentStep = steps[currentStepIndex];
@@ -654,6 +735,22 @@ export default function App() {
     setCurrentStepIndex((stepIndex) => Math.max(stepIndex - 1, 0));
   }
 
+  function handleFormKeyDown(event) {
+    if (event.key !== 'Enter' || event.isComposing) {
+      return;
+    }
+
+    if (event.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (!isLastStep && submitStatus !== 'submitting') {
+      handleNext();
+    }
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
     setSubmitError('');
@@ -696,78 +793,93 @@ export default function App() {
     setSubmitError('');
     setValidationMessage('');
     setCurrentStepIndex(0);
+    setHasStartedForm(false);
   }
 
   function renderQuestion(question) {
+    const copy = getQuestionCopy(question);
+
     if (question.type === 'long_text') {
       return (
-        <label className="field textarea-field" htmlFor={question.key} key={question.id}>
-          <span>{question.label}</span>
-          {question.description ? <p className="hint">{question.description}</p> : null}
-          <textarea
-            id={question.key}
-            value={answers[question.key] || ''}
-            onChange={(event) => updateField(question.key, event.target.value)}
-            required={question.required}
-            rows="7"
-            placeholder={getPlaceholder(question)}
-          />
-        </label>
+        <section className="guided-question" key={question.id}>
+          <div className="guided-copy">
+            <p className="step-kicker">{copy.eyebrow}</p>
+            <h2>{copy.title}</h2>
+            {copy.helper ? <p>{copy.helper}</p> : null}
+          </div>
+          <label className="field textarea-field guided-field" htmlFor={question.key}>
+            <span className="visually-hidden">{question.label}</span>
+            <textarea
+              id={question.key}
+              value={answers[question.key] || ''}
+              onChange={(event) => updateField(question.key, event.target.value)}
+              required={question.required}
+              rows="7"
+              placeholder={getPlaceholder(question)}
+            />
+          </label>
+        </section>
       );
     }
 
     if (question.type === 'single_choice' || question.type === 'yes_no') {
       return (
-        <RadioGroup
-          legend={question.label}
-          name={question.key}
-          options={question.options || []}
-          value={answers[question.key] || ''}
-          onChange={(value) => updateField(question.key, value)}
-          key={question.id}
-        />
+        <section className="guided-question" key={question.id}>
+          <div className="guided-copy">
+            <p className="step-kicker">{copy.eyebrow}</p>
+          </div>
+          <RadioGroup
+            legend={copy.title}
+            name={question.key}
+            options={question.options || []}
+            value={answers[question.key] || ''}
+            onChange={(value) => updateField(question.key, value)}
+          />
+          {copy.helper ? <p className="guided-helper">{copy.helper}</p> : null}
+        </section>
       );
     }
 
     if (question.type === 'multi_choice') {
       return (
-        <CheckboxGroup
-          legend={question.label}
-          options={question.options || []}
-          values={answers[question.key] || []}
-          onChange={(value) => updateField(question.key, value)}
-          key={question.id}
-        />
+        <section className="guided-question" key={question.id}>
+          <div className="guided-copy">
+            <p className="step-kicker">{copy.eyebrow}</p>
+          </div>
+          <CheckboxGroup
+            legend={copy.title}
+            options={question.options || []}
+            values={answers[question.key] || []}
+            onChange={(value) => updateField(question.key, value)}
+          />
+          {copy.helper ? <p className="guided-helper">{copy.helper}</p> : null}
+        </section>
       );
     }
 
     return (
-      <TextField
-        id={question.key}
-        label={question.label}
-        type={getInputType(question)}
-        value={answers[question.key] || ''}
-        onChange={(value) => updateField(question.key, value)}
-        required={question.required}
-        placeholder={getPlaceholder(question)}
-        key={question.id}
-      />
+      <section className="guided-question" key={question.id}>
+        <div className="guided-copy">
+          <p className="step-kicker">{copy.eyebrow}</p>
+          <h2>{copy.title}</h2>
+          {copy.helper ? <p>{copy.helper}</p> : null}
+        </div>
+        <TextField
+          id={question.key}
+          label={question.label}
+          type={getInputType(question)}
+          value={answers[question.key] || ''}
+          onChange={(value) => updateField(question.key, value)}
+          required={question.required}
+          placeholder={getPlaceholder(question)}
+        />
+      </section>
     );
   }
 
   function renderStep() {
     if (!currentStep) {
       return null;
-    }
-
-    if (currentStep.id === 'contact') {
-      return (
-        <section className="step-content" aria-labelledby="contact-title">
-          <p className="step-kicker">Dados de contato</p>
-          <h2 id="contact-title">Como podemos falar com voce?</h2>
-          <div className="fields-grid">{currentStep.questions.map(renderQuestion)}</div>
-        </section>
-      );
     }
 
     return currentStep.questions.map(renderQuestion);
@@ -828,19 +940,45 @@ export default function App() {
     );
   }
 
+  if (!hasStartedForm) {
+    return (
+      <main className="page-shell guided-shell">
+        <section className="guided-panel welcome-panel" aria-labelledby="welcome-title">
+          <div>
+            <p className="eyebrow">Sessao gratuita</p>
+            <h1 id="welcome-title">Vamos preparar sua conversa com calma</h1>
+            <p>
+              Vou te fazer algumas perguntas para entender seu momento e conduzir a conversa inicial
+              com mais clareza.
+            </p>
+          </div>
+
+          <div className="welcome-summary" aria-label="Resumo do fluxo">
+            <span>Leva poucos minutos</span>
+            <span>Depois voce escolhe o horario</span>
+            <span>Convite enviado por e-mail</span>
+          </div>
+
+          <button className="primary-button welcome-button" type="button" onClick={() => setHasStartedForm(true)}>
+            Comecar
+          </button>
+        </section>
+      </main>
+    );
+  }
+
   return (
-    <main className="page-shell">
-      <section className="form-panel" aria-labelledby="form-title">
-        <div className="form-heading">
-          <p className="eyebrow">Sessao gratuita</p>
-          <h1 id="form-title">{dynamicForm?.title || 'Formulario de acolhimento'}</h1>
-          <p>
-            {dynamicForm?.description ||
-              'Preencha os dados abaixo para que a conversa inicial seja conduzida com mais clareza e cuidado.'}
-          </p>
+    <main className="page-shell guided-shell">
+      <section className="guided-panel" aria-labelledby="form-title">
+        <div className="guided-topbar">
+          <div>
+            <p className="eyebrow">Sessao gratuita</p>
+            <h1 id="form-title">{dynamicForm?.title || 'Formulario de acolhimento'}</h1>
+          </div>
+          <span>{currentStepIndex + 1} de {steps.length}</span>
         </div>
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form className="guided-form" onKeyDown={handleFormKeyDown} onSubmit={handleSubmit} noValidate>
           <div className="progress-area" aria-label="Progresso do formulario">
             <div className="progress-meta">
               <span>{currentStep?.label || 'Formulario'}</span>

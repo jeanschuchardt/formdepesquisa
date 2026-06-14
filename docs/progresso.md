@@ -1,5 +1,7 @@
 # Progresso do projeto
 
+Para uma visao executiva do estado atual, veja `docs/status.md`.
+
 ## Estado atual
 
 - Aplicacao React criada com Vite.

@@ -1,5 +1,9 @@
 # Roadmap de evolucao
 
+Para uma visao resumida de progresso, marcos e proximos passos, veja `docs/status.md`.
+
+Para alinhar vocabulario de frontend, React e UX, veja `docs/frontend-ux-conceitos.md`.
+
 ## Direcao do produto
 
 O produto deve evoluir de um formulario com agendamento para uma plataforma de jornadas para
@@ -280,6 +284,42 @@ Possibilidades:
 - Pagina de obrigado personalizada.
 
 Recomendacao: fazer agora, em recortes pequenos.
+
+Backlog aprovado: conversa guiada
+
+Objetivo:
+
+- Trocar a sensacao de formulario padrao por uma jornada de acolhimento.
+- Cada etapa deve parecer uma pergunta em uma conversa, nao um bloco tecnico.
+- O tom deve ser mais humano, claro e cuidadoso.
+
+Exemplos de linguagem:
+
+```text
+Primeiro, me conta como posso te chamar?
+E qual o melhor e-mail para receber o convite?
+Agora me ajuda a entender o que esta mais presente hoje.
+```
+
+Caracteristicas desejadas:
+
+- Uma pergunta por tela, quando fizer sentido.
+- Perguntas com linguagem mais natural.
+- Opcoes em botoes/cards mais leves.
+- Transicoes suaves.
+- Progresso discreto.
+- Menos aparencia de formulario tradicional.
+- Experiencia mais adequada para acolhimento, terapia e contexto emocional.
+
+Risco:
+
+- O fluxo pode ficar longo se cada pergunta virar uma tela isolada.
+
+Direcao para mitigar:
+
+- Agrupar perguntas simples de contato quando fizer sentido.
+- Usar uma pergunta por tela apenas para perguntas mais sensiveis ou reflexivas.
+- Medir a fluidez com teste real antes de criar mais etapas.
 
 ### Formularios dinamicos
 
